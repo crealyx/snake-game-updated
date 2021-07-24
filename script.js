@@ -1,11 +1,8 @@
 const snakeGameboard = document.querySelector('#snakeGame');
 const ctx = snakeGameboard.getContext('2d');
-ctx.imageSmoothingEnabled = false;
-ctx.imageSmoothingQuality = 'low';
 document.addEventListener('keydown', changeDirection);
 let snakeSizeX = (snakeSizeY = 20);
 const boardBorder = 'red';
-// const boardBg = '#126b53';
 const snakeColor = 'cyan';
 const snakeBorder = 'black';
 const snakeHead = document.getElementById('snake-head');
@@ -49,7 +46,6 @@ let snake = [
 main();
 swapFoods();
 fastMoveSkill();
-// generateFood();
 function main() {
   if (hasGameEnded()) {
     alert('Öldün Yenile');
@@ -61,9 +57,6 @@ function main() {
     drawWalls();
     drawFood();
     moveSnake();
-    // if (score >= 50) {
-    //   swapSpeed = 300;
-    // }
     drawSnake();
     main();
   }, gameSpeed);
@@ -273,13 +266,6 @@ function drawSnake() {
       }
     }
   }
-  // snake.forEach((tail) => {
-  //   // ctx.drawImage(snakeSprite, tail.x, tail.y, 25, 25);
-  //   // ctx.fillStyle = snakeColor;
-  //   // ctx.strokeStyle = snakeBorder;
-  //   // ctx.fillRect(tail.x, tail.y, snakeSizeX, snakeSizeY);
-  //   // ctx.strokeRect(tail.x, tail.y, snakeSizeX, snakeSizeY);
-  // });
 }
 
 function moveSnake() {
@@ -327,10 +313,6 @@ function moveSnake() {
 }
 
 function clearCanvas() {
-  // ctx.fillStyle = boardBg;
-  // ctx.strokeStyle = boardBorder;
-  // ctx.fillRect(0, 0, snakeGameboard.width, snakeGameboard.height);
-  // ctx.strokeRect(0, 0, snakeGameboard.width, snakeGameboard.height);
   ctx.drawImage(boardBg, 0, 0, snakeGameboard.width, snakeGameboard.height);
 }
 
@@ -409,45 +391,18 @@ function generateFood() {
   });
 }
 
-// function generateBadFood() {
-//   badFoodX = randomFood(0, snakeGameboard.width - 20);
-//   badFoodY = randomFood(0, snakeGameboard.height - 20);
-//   snake.forEach((part) => {
-//     const hasEaten = part.x == badFoodX && part.y == badFoodY;
-//     if (hasEaten) generateBadFood();
-//   });
-// }
-
 function drawFood() {
   if (isSwapFinished === true) {
     makeFoodsSame();
     return;
   }
   // Food
-  // console.log(`${foodX} normal food x`);
-  // console.log(`${foodY} normal food y`);
-  // console.log(`${badFoodX} bad food x`);
-  // console.log(`${badFoodY} bad food y`);
-  // console.log(`${poisonousFoodX} poisonous food x`);
-  // console.log(`${poisonousFoodY} poisonous food y`);
   ctx.drawImage(apple, foodX, foodY, 35, 35);
-  // ctx.fillStyle = foodColor;
-  // ctx.strokeStyle = foodBorderColor;
-  // ctx.fillRect(foodX, foodY, 25, 25);
-  // ctx.strokeRect(foodX, foodY, 25, 25);
   // Bad Food
   ctx.drawImage(burger, badFoodX, badFoodY, 35, 35);
-  // ctx.fillStyle = badFoodColor;
-  // ctx.strokeStyle = badFoodBorderColor;
-  // ctx.fillRect(badFoodX, badFoodY, 25, 25);
-  // ctx.strokeRect(badFoodX, badFoodY, 25, 25);
   // Poisonous Food
   if (isPoisoned === false) {
     ctx.drawImage(shroom, poisonousFoodX, poisonousFoodY, 35, 35);
-    // ctx.fillStyle = poisonousFoodColor;
-    // ctx.strokeStyle = poisonousFoodBorderColor;
-    // ctx.fillRect(poisonousFoodX, poisonousFoodY, 25, 25);
-    // ctx.strokeRect(poisonousFoodX, poisonousFoodY, 25, 25);
   }
 }
 
@@ -462,7 +417,6 @@ function swapFoods() {
     generateFood();
     drawFood();
     swapSpeed -= 10;
-    // setTimeout(clearFood, 1100);
     repeatTime++;
   }, swapSpeed);
 }
@@ -489,23 +443,8 @@ function clearFood() {
 function makeFoodsSame() {
   ctx.drawImage(sphere, foodX, foodY, 35, 35);
   ctx.drawImage(sphere, badFoodX, badFoodY, 35, 35);
-
-  // ctx.fillStyle = 'white';
-  // ctx.strokeStyle = 'black';
-  // ctx.fillRect(foodX, foodY, 25, 25);
-  // ctx.strokeRect(foodX, foodY, 25, 25);
-  // Bad Food
-  // ctx.fillStyle = 'white';
-  // ctx.strokeStyle = 'black';
-  // ctx.fillRect(badFoodX, badFoodY, 25, 25);
-  // ctx.strokeRect(badFoodX, badFoodY, 25, 25);
-  // Poisonous Food
   if (isPoisoned === false) {
     ctx.drawImage(sphere, poisonousFoodX, poisonousFoodY, 35, 35);
-    // ctx.fillStyle = 'white';
-    // ctx.strokeStyle = 'black';
-    // ctx.fillRect(poisonousFoodX, poisonousFoodY, 25, 25);
-    // ctx.strokeRect(poisonousFoodX, poisonousFoodY, 25, 25);
   }
 }
 
@@ -530,18 +469,10 @@ function drawWalls() {
   for (let i = 0; i < snakeGameboard.width; i += 25) {
     ctx.drawImage(wall, i, 0, 25, 25);
     ctx.drawImage(wall, i, 775, 25, 25);
-    // ctx.fillRect(i, 0, 25, 25);
-    // ctx.strokeRect(i, 0, 25, 25);
-    // ctx.fillRect(i, 775, 25, 25);
-    // ctx.strokeRect(i, 775, 25, 25);
   }
   // Draw vertical walls
   for (let i = 0; i < snakeGameboard.height; i += 25) {
     ctx.drawImage(wall, 0, i, 25, 25);
     ctx.drawImage(wall, 775, i, 25, 25);
-    // ctx.fillRect(0, i, 25, 25);
-    // ctx.strokeRect(0, i, 25, 25);
-    // ctx.fillRect(775, i, 25, 25);
-    // ctx.strokeRect(775, i, 25, 25);
   }
 }
