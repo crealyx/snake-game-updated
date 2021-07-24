@@ -1,0 +1,63 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+#snakeGame {
+  margin-top: 10px;
+}
+main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background-image: url(./img/bg.png);
+  background-repeat: repeat-x;
+  background-size: 100%;
+  padding: 25px;
+}
+#ui {
+  display: flex;
+  width: 50%;
+  margin: auto;
+  align-items: center;
+  justify-content: space-around;
+  text-align: center;
+  font-size: 50px;
+}
+#score,
+#hp {
+  color: white;
+}
+#poison {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 35%;
+  font-size: 50px;
+  color: lightgreen;
+  z-index: 1;
+}
+#poison-warning {
+  display: none;
+  position: absolute;
+  top: 60%;
+  left: 38%;
+  z-index: 1;
+  font-size: 30px;
+  color: white;
+}
+#buttons {
+  display: flex;
+  justify-content: center;
+}
+#snake-head,
+#gameboard-bg,
+#snake-body,
+#snake-sprite,
+#shroom,
+#apple,
+#burger,
+#sphere,
+#wall {
+  display: none;
+}
