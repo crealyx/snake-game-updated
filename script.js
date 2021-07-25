@@ -1,7 +1,6 @@
 const snakeGameboard = document.querySelector('#snakeGame');
 const ctx = snakeGameboard.getContext('2d');
 document.addEventListener('keydown', changeDirection);
-let snakeSizeX = (snakeSizeY = 20);
 const boardBorder = 'red';
 const snakeColor = 'cyan';
 const snakeBorder = 'black';
@@ -21,10 +20,12 @@ let badFoodX;
 let badFoodY;
 let poisonousFoodX;
 let poisonousFoodY;
+
 let score = 0;
 let dx = 25;
 let dy = 0;
 let hp = 100;
+let changingDirection;
 let gameSpeed = 100;
 let swapSpeed = 500;
 let isSwapFinished = false;
@@ -79,191 +80,166 @@ function drawSnake() {
   const goingRight = dx === 25;
   const goingLeft = dx === -25;
 
-  const head = {
-    down: { x: 0, y: 0 },
-    left: { x: 250, y: 0 },
-    up: { x: 500, y: 0 },
-    right: { x: 750, y: 0 },
-  };
-  const body = {
-    down: { x: 0, y: 250 },
-    left: { x: 250, y: 250 },
-    up: { x: 500, y: 250 },
-    right: { x: 750, y: 250 },
-  };
-  const tail = {
-    down: { x: 0, y: 500 },
-    left: { x: 250, y: 500 },
-    up: { x: 500, y: 500 },
-    right: { x: 750, y: 500 },
-  };
+  // const head = {
+  //   down: { x: 0, y: 0 },
+  //   left: { x: 250, y: 0 },
+  //   up: { x: 500, y: 0 },
+  //   right: { x: 750, y: 0 },
+  // };
+  // const body = {
+  //   down: { x: 0, y: 250 },
+  //   left: { x: 250, y: 250 },
+  //   up: { x: 500, y: 250 },
+  //   right: { x: 750, y: 250 },
+  // };
+  // const tail = {
+  //   down: { x: 0, y: 500 },
+  //   left: { x: 250, y: 500 },
+  //   up: { x: 500, y: 500 },
+  //   right: { x: 750, y: 500 },
+  // };
+  // const turn = {
+  //   up: { x: 0, y: 750 },
+  //   left: { x: 250, y: 750 },
+  //   right: { x: 500, y: 750 },
+  //   down: { x: 750, y: 750 },
+  // };
   for (let i = 0; i < snake.length; i++) {
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = '#00bbff';
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(snake[i].x, snake[i].y, 25, 25);
+    if (goingRight || goingLeft) {
+      const gradient = ctx.createLinearGradient(
+        snake[0].x,
+        0,
+        snake[snake.length - 1].x,
+        0
+      );
+      ctx.fillStyle = gradient;
+      gradient.addColorStop(0, '#00fff6');
+      gradient.addColorStop(1, '#009dff');
+      ctx.fillRect(snake[i].x, snake[i].y, 25, 25);
+    }
+    if (goingUp || goingDown) {
+      const gradient = ctx.createLinearGradient(
+        0,
+        snake[0].y,
+        0,
+        snake[snake.length - 1].y
+      );
+      ctx.fillStyle = gradient;
+      gradient.addColorStop(0, '#00fff6');
+      gradient.addColorStop(1, '#009dff');
+      ctx.fillRect(snake[i].x, snake[i].y, 25, 25);
+    }
     // Draw right direction
-    if (goingRight) {
-      if (i == 0) {
-        ctx.drawImage(
-          snakeSprite,
-          head.right.x,
-          head.right.y,
-          250,
-          250,
-          snake[i].x,
-          snake[i].y,
-          25,
-          25
-        );
-      }
-      if (i !== 0 && i !== snake.length - 1)
-        ctx.drawImage(
-          snakeSprite,
-          body.right.x,
-          body.right.y,
-          250,
-          250,
-          snake[i].x,
-          snake[i].y,
-          25,
-          25
-        );
-      if (i === snake.length - 1) {
-        ctx.drawImage(
-          snakeSprite,
-          tail.right.x,
-          tail.right.y,
-          250,
-          250,
-          snake[i].x,
-          snake[i].y,
-          25,
-          25
-        );
-      }
-    }
+    // if (goingRight) {
+    //   // ctx.fillStyle = 'black';
+    //   // ctx.shadowBlur = 20;
+    //   // ctx.shadowColor = 'red';
+    //   // ctx.strokeStyle = 'red';
+    //   // ctx.strokeRect(snake[i].x, snake[i].y, 25, 25);
+    //   // ctx.fillRect(snake[i].x, snake[i].y, 25, 25);
+    //   // drawSnakeDirectional(head.right, body.right, tail.right, i);
+    // }
 
-    // Draw down direction
-    if (goingDown) {
-      if (i == 0) {
-        ctx.drawImage(
-          snakeSprite,
-          head.down.x,
-          head.down.y,
-          250,
-          250,
-          snake[i].x,
-          snake[i].y,
-          25,
-          25
-        );
-      }
-      if (i !== 0 && i !== snake.length - 1)
-        ctx.drawImage(
-          snakeSprite,
-          body.down.x,
-          body.down.y,
-          250,
-          250,
-          snake[i].x,
-          snake[i].y,
-          25,
-          25
-        );
-      if (i === snake.length - 1) {
-        ctx.drawImage(
-          snakeSprite,
-          tail.down.x,
-          tail.down.y,
-          250,
-          250,
-          snake[i].x,
-          snake[i].y,
-          25,
-          25
-        );
-      }
-    }
+    // // Draw down direction
+    // else if (goingDown) {
+    //   // if (snake[0].y > lastTurnY) {
+    //   //   if (snake[i].x === lastTurnX && snake[i].y === lastTurnY) {
+    //   //     ctx.drawImage(
+    //   //       snakeSprite,
+    //   //       turn.down.x,
+    //   //       turn.down.y,
+    //   //       250,
+    //   //       250,
+    //   //       snake[i].x,
+    //   //       snake[i].y,
+    //   //       25,
+    //   //       25
+    //   //     );
+    //   //   } else if (snake[i].y <= lastTurnY) {
+    //   //     drawSnakeDirectional(head.right, body.right, tail.right, i);
+    //   //     console.log('right');
+    //   //   } else {
+    //   //     drawSnakeDirectional(head.down, body.down, tail.down, i);
+    //   //     console.log('down');
+    //   //   }
+    //   // }
+    // }
 
-    // Draw left direction
-    if (goingLeft) {
-      if (i == 0) {
-        ctx.drawImage(
-          snakeSprite,
-          head.left.x,
-          head.left.y,
-          250,
-          250,
-          snake[i].x,
-          snake[i].y,
-          25,
-          25
-        );
-      }
-      if (i !== 0 && i !== snake.length - 1)
-        ctx.drawImage(
-          snakeSprite,
-          body.left.x,
-          body.left.y,
-          250,
-          250,
-          snake[i].x,
-          snake[i].y,
-          25,
-          25
-        );
-      if (i === snake.length - 1) {
-        ctx.drawImage(
-          snakeSprite,
-          tail.left.x,
-          tail.left.y,
-          250,
-          250,
-          snake[i].x,
-          snake[i].y,
-          25,
-          25
-        );
-      }
-    }
+    // // Draw left direction
+    // else if (goingLeft) {
+    //   // drawSnakeDirectional(head.left, body.left, tail.left, i);
+    // }
 
-    // Draw up direction
-    if (goingUp) {
-      if (i == 0) {
-        ctx.drawImage(
-          snakeSprite,
-          head.up.x,
-          head.up.y,
-          250,
-          250,
-          snake[i].x,
-          snake[i].y,
-          25,
-          25
-        );
-      }
-      if (i !== 0 && i !== snake.length - 1)
-        ctx.drawImage(
-          snakeSprite,
-          body.up.x,
-          body.up.y,
-          250,
-          250,
-          snake[i].x,
-          snake[i].y,
-          25,
-          25
-        );
-      if (i === snake.length - 1) {
-        ctx.drawImage(
-          snakeSprite,
-          tail.up.x,
-          tail.up.y,
-          250,
-          250,
-          snake[i].x,
-          snake[i].y,
-          25,
-          25
-        );
-      }
+    // // Draw up direction
+    // else if (goingUp) {
+    // //   if (snake[0].y < lastTurnY) {
+    // //     if (snake[i].x === lastTurnX && snake[i].y === lastTurnY) {
+    // //       ctx.drawImage(
+    // //         snakeSprite,
+    // //         turn.up.x,
+    // //         turn.up.y,
+    // //         250,
+    // //         250,
+    // //         snake[i].x,
+    // //         snake[i].y,
+    // //         25,
+    // //         25
+    // //       );
+    // //     } else if (snake[i].y >= lastTurnY) {
+    // //       drawSnakeDirectional(head.right, body.right, tail.right, i);
+    // //       console.log('right');
+    // //     } else {
+    // //       drawSnakeDirectional(head.up, body.up, tail.up, i);
+    // //       console.log('down');
+    // //     }
+    // //   }
+    // // }
+  }
+
+  function drawSnakeDirectional(head, body, tail, i) {
+    if (i == 0) {
+      ctx.drawImage(
+        snakeSprite,
+        head.x,
+        head.y,
+        250,
+        250,
+        snake[i].x,
+        snake[i].y,
+        25,
+        25
+      );
+    }
+    if (i !== 0 && i !== snake.length - 1) {
+      ctx.drawImage(
+        snakeSprite,
+        body.x,
+        body.y,
+        250,
+        250,
+        snake[i].x,
+        snake[i].y,
+        25,
+        25
+      );
+    }
+    if (i === snake.length - 1) {
+      ctx.drawImage(
+        snakeSprite,
+        tail.x,
+        tail.y,
+        250,
+        250,
+        snake[i].x,
+        snake[i].y,
+        25,
+        25
+      );
     }
   }
 }
@@ -313,7 +289,14 @@ function moveSnake() {
 }
 
 function clearCanvas() {
-  ctx.drawImage(boardBg, 0, 0, snakeGameboard.width, snakeGameboard.height);
+  ctx.shadowColor = 'green';
+  ctx.drawImage(
+    boardBg,
+    0,
+    0,
+    snakeGameboard.width - 25,
+    snakeGameboard.height - 25
+  );
 }
 
 function changeDirection(event) {
@@ -397,16 +380,32 @@ function drawFood() {
     return;
   }
   // Food
-  ctx.drawImage(apple, foodX, foodY, 35, 35);
+  ctx.fillStyle = '#32ff40';
+  ctx.shadowBlur = 20;
+  ctx.shadowColor = 'green';
+  ctx.strokeStyle = 'black';
+  ctx.strokeRect(foodX, foodY, 25, 25);
+  ctx.fillRect(foodX, foodY, 25, 25);
   // Bad Food
-  ctx.drawImage(burger, badFoodX, badFoodY, 35, 35);
+  ctx.fillStyle = 'red';
+  ctx.shadowBlur = 20;
+  ctx.shadowColor = 'red';
+  ctx.strokeStyle = 'black';
+  ctx.strokeRect(badFoodX, badFoodY, 25, 25);
+  ctx.fillRect(badFoodX, badFoodY, 25, 25);
   // Poisonous Food
   if (isPoisoned === false) {
-    ctx.drawImage(shroom, poisonousFoodX, poisonousFoodY, 35, 35);
+    ctx.fillStyle = '#eeff00';
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = 'yellow';
+    ctx.strokeStyle = 'black';
+    ctx.strokeRect(poisonousFoodX, poisonousFoodY, 25, 25);
+    ctx.fillRect(poisonousFoodX, poisonousFoodY, 25, 25);
   }
 }
 
 function swapFoods() {
+  // clearFood();
   let repeatTime = 0;
   let delay = setInterval(() => {
     if (repeatTime === 5) {
@@ -422,10 +421,11 @@ function swapFoods() {
 }
 
 function clearFood() {
-  ctx.fillStyle = boardBg;
-  ctx.strokeStyle = 'black';
-  ctx.fillRect(foodX, foodY, 25, 25);
-  ctx.strokeRect(foodX, foodY, 25, 25);
+  ctx.drawImage(boardBg, foodX, foodY, 25, 25, foodX, foodY, 25, 25);
+  // ctx.fillStyle = boardBg;
+  // ctx.strokeStyle = 'black';
+  // ctx.fillRect(foodX, foodY, 25, 25);
+  // ctx.strokeRect(foodX, foodY, 25, 25);
   // Bad Food
   ctx.fillStyle = boardBg;
   ctx.strokeStyle = 'black';
@@ -441,11 +441,24 @@ function clearFood() {
 }
 
 function makeFoodsSame() {
-  ctx.drawImage(sphere, foodX, foodY, 35, 35);
-  ctx.drawImage(sphere, badFoodX, badFoodY, 35, 35);
+  ctx.shadowBlur = 20;
+  ctx.shadowColor = 'white';
+  ctx.strokeStyle = 'black';
+  ctx.lineWidth = 4;
   if (isPoisoned === false) {
-    ctx.drawImage(sphere, poisonousFoodX, poisonousFoodY, 35, 35);
+    ctx.fillStyle = 'white';
+    ctx.strokeStyle = 'black';
+    ctx.fillRect(poisonousFoodX, poisonousFoodY, 25, 25);
+    ctx.strokeRect(poisonousFoodX, poisonousFoodY, 25, 25);
   }
+  ctx.fillStyle = 'white';
+  ctx.strokeStyle = 'black';
+  ctx.fillRect(foodX, foodY, 25, 25);
+  ctx.strokeRect(foodX, foodY, 25, 25);
+  ctx.fillStyle = 'white';
+  ctx.strokeStyle = 'black';
+  ctx.fillRect(badFoodX, badFoodY, 25, 25);
+  ctx.strokeRect(badFoodX, badFoodY, 25, 25);
 }
 
 function fastMoveSkill() {
