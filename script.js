@@ -1,9 +1,5 @@
 const snakeGameboard = document.querySelector('#snakeGame');
 const ctx = snakeGameboard.getContext('2d');
-document.addEventListener('keydown', changeDirection);
-const boardBorder = 'red';
-const snakeColor = 'cyan';
-const snakeBorder = 'black';
 const snakeHead = document.getElementById('snake-head');
 const snakeBody = document.getElementById('snake-body');
 const snakeSprite = document.getElementById('snake-sprite');
@@ -13,7 +9,8 @@ const apple = document.getElementById('apple');
 const burger = document.getElementById('burger');
 const sphere = document.getElementById('sphere');
 const wall = document.getElementById('wall');
-
+const playButton = document.querySelector('#play-button');
+const dialogue = document.querySelector('#dialogue');
 let foodX;
 let foodY;
 let badFoodX;
@@ -21,6 +18,8 @@ let badFoodY;
 let poisonousFoodX;
 let poisonousFoodY;
 
+let isPlaying = false;
+let isIntroFinished = true;
 let score = 0;
 let dx = 25;
 let dy = 0;
@@ -30,6 +29,9 @@ let gameSpeed = 100;
 let swapSpeed = 500;
 let isSwapFinished = false;
 let isPoisoned = false;
+const boardBorder = 'red';
+const snakeColor = 'cyan';
+const snakeBorder = 'black';
 let foodColor = 'lightgreen';
 let foodBorderColor = 'black';
 let badFoodColor = 'red';
@@ -43,10 +45,21 @@ let snake = [
   { x: 170, y: 200 },
   { x: 160, y: 200 },
 ];
+// Game
+if (!isPlaying) {
+  playButton.addEventListener('click', () => {
+    isPlaying = true;
+    dialogue.style.visibility = 'visible';
+    document.addEventListener('keydown', changeDirection);
+    if (isIntroFinished) {
+      main();
+      swapFoods();
+      fastMoveSkill();
+    }
+  });
+}
 
-main();
-swapFoods();
-fastMoveSkill();
+// Logic
 function main() {
   if (hasGameEnded()) {
     alert('Öldün Yenile');
@@ -139,7 +152,7 @@ function moveSnake() {
 }
 
 function clearCanvas() {
-  ctx.shadowColor = 'green';
+  ctx.shadowColor = '#ee00ff';
   ctx.drawImage(
     boardBg,
     0,

@@ -10,10 +10,42 @@ main {
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  background-image: url(./img/bg.png);
+  background-image: url(./img/bg.jpg);
   background-repeat: repeat-x;
   background-size: 100%;
   padding: 25px;
+}
+#dialogue {
+  visibility: hidden;
+  position: fixed;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  bottom: -520px;
+  left: 0;
+}
+#joi {
+  height: 100%;
+  width: 30%;
+  background-image: url(./img/joi.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+#box {
+  color: black;
+  font-size: 3rem;
+  text-align: center;
+  line-height: 15rem;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  z-index: -1;
+  align-self: center;
+  background-repeat: no-repeat;
+  background-image: url(./img/dialogue-box.png);
+  background-size: contain;
+  margin-top: 300px;
+  margin-right: 200px;
 }
 #ui {
   display: flex;
