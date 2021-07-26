@@ -133,7 +133,6 @@ previousButton.addEventListener('click', () => {
   updateIntroText();
 });
 playAgainButton.addEventListener('click', () => {
-  gameOver = false;
   snakeGameboard.style.display = 'block';
   deathScreen.style.display = 'none';
   restartGame();
@@ -207,7 +206,10 @@ function restartGame() {
 }
 function hasGameEnded() {
   for (let i = 4; i < snake.length; i++) {
-    if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true;
+    if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) {
+      gameOver = true;
+      return;
+    }
   }
   const hitLeftWall = snake[0].x < 25;
   const hitRightWall = snake[0].x > snakeGameboard.width - 50;
@@ -215,6 +217,7 @@ function hasGameEnded() {
   const hitBottomWall = snake[0].y > snakeGameboard.height - 50;
   if (hitLeftWall || hitRightWall || hitTopWall || hitBottomWall) {
     gameOver = true;
+    return;
   }
 }
 
@@ -446,7 +449,6 @@ function fastMoveSkill() {
     if (e.code === 'Space') {
       fastMoveActivated = true;
       gameSpeed = 20;
-      console.log('sa');
     }
   });
 }
