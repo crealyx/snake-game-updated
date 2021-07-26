@@ -13,9 +13,14 @@ const playButton = document.querySelector('#play-button');
 const dialogue = document.querySelector('#dialogue');
 const menu = document.querySelector('#menu');
 const game = document.querySelector('#game');
+const nextButton = document.querySelector('#next');
+const previousButton = document.querySelector('#previous');
 const skipButton = document.querySelector('#skip');
 const deathScreen = document.querySelector('#death-screen');
 const playAgainButton = document.querySelector('#play-again');
+const ui = document.querySelector('#ui');
+const boss = document.querySelector('#boss');
+const introText = document.querySelector('#intro-text');
 
 let foodX;
 let foodY;
@@ -30,7 +35,18 @@ let score = 0;
 let dx = 25;
 let dy = 0;
 let hp = 100;
+let introPages = [
+  'Welcome to the future player...',
+  `Your objective is simple,<br> BEAT THE GAME.`,
+  'You get points and health with <span id="green">GREEN</span> chips.',
+  'You lost points and health with <span id="red">RED</span> chips.',
+  'BEWARE of the unknown <span id="yellow">YELLOW</span> chips. <br>They might confuse your brain a little...',
+  'But, there is a catch.. They all become <span id="white">SIMILAR</span> later, so you have to use your memory.',
+  'You can also use your selected ABILITIES with SPACEBAR',
+  'Oh, i almost forgot.. <br><span id="cyan">HE IS WAITING FOR YOU...</span>',
+];
 let gameOver = false;
+let currentPage = 0;
 let changingDirection;
 let gameSpeed = 100;
 let swapSpeed = 500;
@@ -54,7 +70,7 @@ let snake = [
 ];
 // Game
 skipButton.addEventListener('click', () => {
-  isIntroFinished = true;
+  isIntroFinished = false;
   menu.style.display = 'none';
   game.style.display = 'block';
   dialogue.style.display = 'none';
@@ -74,6 +90,40 @@ playButton.addEventListener('click', () => {
     fastMoveSkill();
   }
 });
+
+if (currentPage === 0) {
+  previousButton.style.display = 'none';
+}
+updateIntroText();
+nextButton.addEventListener('click', () => {
+  currentPage++;
+  if (currentPage === 7) {
+    nextButton.textContent = 'PLAY';
+    updateIntroText();
+    return;
+  }
+  if (currentPage === 8) {
+    isIntroFinished = false;
+    menu.style.display = 'none';
+    game.style.display = 'block';
+    dialogue.style.display = 'none';
+    main();
+    swapFoods();
+    fastMoveSkill();
+    return;
+  }
+  previousButton.style.display = 'block';
+  updateIntroText();
+});
+previousButton.addEventListener('click', () => {
+  currentPage--;
+  nextButton.textContent = 'Next->';
+  if (currentPage <= 0) {
+    previousButton.style.display = 'none';
+    updateIntroText();
+  }
+  updateIntroText();
+});
 playAgainButton.addEventListener('click', () => {
   gameOver = false;
   snakeGameboard.style.display = 'block';
@@ -89,6 +139,7 @@ function main() {
   if (gameOver) {
     snakeGameboard.style.display = 'none';
     deathScreen.style.display = 'flex';
+    boss.style.display = 'none';
     return;
   }
   changingDirection = false;
@@ -99,6 +150,9 @@ function main() {
       ctx.fillStyle = 'green';
       ctx.fillRect(0, 0, snakeGameboard.width - 25, snakeGameboard.height - 25);
     }
+    if (hp <= 0) {
+      gameOver = true;
+    }
     ctx.globalAlpha = 1;
     drawWalls();
     drawFood();
@@ -107,7 +161,12 @@ function main() {
     main();
   }, gameSpeed);
 }
+function updateIntroText() {
+  introText.innerHTML = introPages[currentPage];
+}
 function restartGame() {
+  isSwapFinished = false;
+  isPoisoned = false;
   score = 0;
   dx = 25;
   dy = 0;
@@ -122,8 +181,12 @@ function restartGame() {
     { x: 170, y: 200 },
     { x: 160, y: 200 },
   ];
-  document.getElementById('score').innerHTML = `Score: ${score}`;
-  document.getElementById('hp').innerHTML = `Hp: ${hp}`;
+  document.getElementById(
+    'score'
+  ).innerHTML = `Score: <span id="score-value">${score}</span>`;
+  document.getElementById(
+    'hp'
+  ).innerHTML = `Hp: <span id="hp-value">${hp}</span>`;
 }
 function hasGameEnded() {
   for (let i = 4; i < snake.length; i++) {
@@ -174,15 +237,23 @@ function moveSnake() {
     }
     score += 10;
     hp !== 100 ? (hp += 5) : hp;
-    document.getElementById('score').innerHTML = `Score: ${score}`;
-    document.getElementById('hp').innerHTML = `Hp: ${hp}`;
+    document.getElementById(
+      'score'
+    ).innerHTML = `Score: <span id="score-value">${score}</span>`;
+    document.getElementById(
+      'hp'
+    ).innerHTML = `Hp: <span id="hp-value">${hp}</span>`;
     isSwapFinished = false;
     swapFoods();
   } else if (hasEatenBadFood && isSwapFinished === true) {
     score -= 10;
     hp -= 10;
-    document.getElementById('score').innerHTML = `Score: ${score}`;
-    document.getElementById('hp').innerHTML = `Hp: ${hp}`;
+    document.getElementById(
+      'score'
+    ).innerHTML = `Score: <span id="score-value">${score}</span>`;
+    document.getElementById(
+      'hp'
+    ).innerHTML = `Hp: <span id="hp-value">${hp}</span>`;
     isSwapFinished = false;
     swapFoods();
   } else if (hasEatenPoisonousFood && isSwapFinished === true) {
@@ -190,8 +261,12 @@ function moveSnake() {
     score -= 5;
     hp -= 5;
     document.getElementById('poison-screen').style.display = 'none';
-    document.getElementById('score').innerHTML = `Score: ${score}`;
-    document.getElementById('hp').innerHTML = `Hp: ${hp}`;
+    document.getElementById(
+      'score'
+    ).innerHTML = `Score: <span id="score-value">${score}</span>`;
+    document.getElementById(
+      'hp'
+    ).innerHTML = `Hp: <span id="hp-value">${hp}</span>`;
     isSwapFinished = false;
     swapFoods();
   } else {

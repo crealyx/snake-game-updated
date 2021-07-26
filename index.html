@@ -30,8 +30,9 @@
       <div id="dialogue">
         <img id="joi" src="./img/joi.png" alt="" />
         <div id="box">
-          <p id="text">Welcome to 2077</p>
+          <p id="intro-text"></p>
           <div id="dialogue-buttons">
+            <button id="previous"><-Previous</button>
             <button id="next">Next-></button>
             <button id="skip">Skip ->></button>
           </div>
@@ -39,8 +40,11 @@
       </div>
       <div id="game">
         <div id="ui">
-          <div id="score">Score: 0</div>
-          <div id="hp">Hp: 100</div>
+          <img id="boss" src="./img/boss.png" alt="" />
+          <div id="scoreboard">
+            <div id="score">Score: <span id="score-value">0</span></div>
+            <div id="hp">Hp: <span id="hp-value">100</span></div>
+          </div>
           <div id="poison-screen">
             <p id="poison">YOU'VE BEEN POISONED!</p>
             <p id="poison-warning">EAT NORMAL FOOD FOR CURE</p>

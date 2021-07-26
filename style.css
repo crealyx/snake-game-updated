@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Doppio+One&display=swap');
+
 * {
   padding: 0;
   margin: 0;
@@ -101,8 +102,6 @@ main {
   width: 500px;
   height: 200px;
   position: relative;
-  /* right: 200px; */
-  /* bottom: 20px; */
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -129,15 +128,17 @@ main {
 #skip:hover {
   color: rgb(208, 255, 0);
 }
-#next {
+#next,
+#previous {
   cursor: pointer;
-  font-size: 2rem;
+  font-size: 1.8rem;
   background-color: cyan;
   border: 2px solid white;
   width: 150px;
   height: 30%;
 }
-#next:hover {
+#next:hover,
+#previous:hover {
   border: 2px solid black;
   background-color: rgb(166, 255, 0);
 }
@@ -181,7 +182,7 @@ main {
 }
 #box {
   color: black;
-  font-size: 3rem;
+  font-size: 2.5rem;
   text-align: center;
   height: 100%;
   width: 100%;
@@ -193,21 +194,56 @@ main {
   background-image: url(./img/dialogue-box.png);
   background-size: 100% 100%;
 }
-#text {
-  width: 70%;
+#green {
+  color: rgb(0, 255, 0);
+}
+#yellow {
+  color: yellow;
+}
+#red {
+  color: rgb(255, 0, 0);
+}
+#white {
+  color: white;
+}
+#cyan {
+  color: rgb(4, 0, 255);
+}
+#intro-text {
+  width: 43%;
   padding-left: 400px;
   align-self: center;
 }
+#boss {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  top: 620px;
+  left: 450px;
+  bottom: 0;
+}
 #ui {
   display: flex;
-  width: 50%;
-  margin: auto;
+  width: 100%;
   align-items: center;
   justify-content: space-around;
   text-align: center;
   font-size: 50px;
 }
-#score,
+#scoreboard {
+  background-color: rgba(179, 27, 0, 0.37);
+  justify-content: space-around;
+  width: 100%;
+  display: flex;
+  border-bottom: 4px solid red;
+}
+#score {
+  margin-bottom: 10px;
+  color: white;
+}
+span {
+  color: red;
+}
 #hp {
   color: white;
 }
