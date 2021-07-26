@@ -11,6 +11,12 @@ const sphere = document.getElementById('sphere');
 const wall = document.getElementById('wall');
 const playButton = document.querySelector('#play-button');
 const dialogue = document.querySelector('#dialogue');
+const menu = document.querySelector('#menu');
+const game = document.querySelector('#game');
+const skipButton = document.querySelector('#skip');
+const deathScreen = document.querySelector('#death-screen');
+const playAgainButton = document.querySelector('#play-again');
+
 let foodX;
 let foodY;
 let badFoodX;
@@ -19,11 +25,12 @@ let poisonousFoodX;
 let poisonousFoodY;
 
 let isPlaying = false;
-let isIntroFinished = true;
+let isIntroFinished = false;
 let score = 0;
 let dx = 25;
 let dy = 0;
 let hp = 100;
+let gameOver = false;
 let changingDirection;
 let gameSpeed = 100;
 let swapSpeed = 500;
@@ -46,28 +53,53 @@ let snake = [
   { x: 160, y: 200 },
 ];
 // Game
-if (!isPlaying) {
-  playButton.addEventListener('click', () => {
-    isPlaying = true;
-    dialogue.style.visibility = 'visible';
-    document.addEventListener('keydown', changeDirection);
-    if (isIntroFinished) {
-      main();
-      swapFoods();
-      fastMoveSkill();
-    }
-  });
-}
-
+skipButton.addEventListener('click', () => {
+  isIntroFinished = true;
+  menu.style.display = 'none';
+  game.style.display = 'block';
+  dialogue.style.display = 'none';
+  main();
+  swapFoods();
+  fastMoveSkill();
+});
+playButton.addEventListener('click', () => {
+  isPlaying = true;
+  menu.style.visibility = 'hidden';
+  menu.style.marginTop = '0px';
+  dialogue.style.display = 'flex';
+  document.addEventListener('keydown', changeDirection);
+  if (isIntroFinished) {
+    main();
+    swapFoods();
+    fastMoveSkill();
+  }
+});
+playAgainButton.addEventListener('click', () => {
+  gameOver = false;
+  snakeGameboard.style.display = 'block';
+  deathScreen.style.display = 'none';
+  restartGame();
+  main();
+  swapFoods();
+  fastMoveSkill();
+});
 // Logic
 function main() {
-  if (hasGameEnded()) {
-    alert('Öldün Yenile');
+  hasGameEnded();
+  if (gameOver) {
+    snakeGameboard.style.display = 'none';
+    deathScreen.style.display = 'flex';
     return;
   }
   changingDirection = false;
   setTimeout(function onTick() {
     clearCanvas();
+    if (isPoisoned) {
+      ctx.globalAlpha = 0.7;
+      ctx.fillStyle = 'green';
+      ctx.fillRect(0, 0, snakeGameboard.width - 25, snakeGameboard.height - 25);
+    }
+    ctx.globalAlpha = 1;
     drawWalls();
     drawFood();
     moveSnake();
@@ -75,7 +107,24 @@ function main() {
     main();
   }, gameSpeed);
 }
-
+function restartGame() {
+  score = 0;
+  dx = 25;
+  dy = 0;
+  hp = 100;
+  gameOver = false;
+  gameSpeed = 100;
+  swapSpeed = 500;
+  snake = [
+    { x: 200, y: 200 },
+    { x: 190, y: 200 },
+    { x: 180, y: 200 },
+    { x: 170, y: 200 },
+    { x: 160, y: 200 },
+  ];
+  document.getElementById('score').innerHTML = `Score: ${score}`;
+  document.getElementById('hp').innerHTML = `Hp: ${hp}`;
+}
 function hasGameEnded() {
   for (let i = 4; i < snake.length; i++) {
     if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true;
@@ -84,7 +133,9 @@ function hasGameEnded() {
   const hitRightWall = snake[0].x > snakeGameboard.width - 50;
   const hitTopWall = snake[0].y < 25;
   const hitBottomWall = snake[0].y > snakeGameboard.height - 50;
-  return hitLeftWall || hitRightWall || hitTopWall || hitBottomWall;
+  if (hitLeftWall || hitRightWall || hitTopWall || hitBottomWall) {
+    gameOver = true;
+  }
 }
 
 function drawSnake() {
@@ -119,8 +170,7 @@ function moveSnake() {
   if (hasEatenFood && isSwapFinished === true) {
     if (isPoisoned) {
       isPoisoned = false;
-      document.getElementById('poison').style.display = 'none';
-      document.getElementById('poison-warning').style.display = 'none';
+      document.getElementById('poison-screen').style.display = 'none';
     }
     score += 10;
     hp !== 100 ? (hp += 5) : hp;
@@ -139,8 +189,7 @@ function moveSnake() {
     isPoisoned = true;
     score -= 5;
     hp -= 5;
-    document.getElementById('poison').style.display = 'block';
-    document.getElementById('poison-warning').style.display = 'block';
+    document.getElementById('poison-screen').style.display = 'none';
     document.getElementById('score').innerHTML = `Score: ${score}`;
     document.getElementById('hp').innerHTML = `Hp: ${hp}`;
     isSwapFinished = false;
@@ -167,7 +216,10 @@ function changeDirection(event) {
   const RIGHT_KEY = 39;
   const UP_KEY = 38;
   const DOWN_KEY = 40;
-  const SPACEBAR = 32;
+  const A_KEY = 65;
+  const D_KEY = 68;
+  const W_KEY = 87;
+  const S_KEY = 83;
   if (changingDirection) return;
   changingDirection = true;
   const keyPressed = event.keyCode;
@@ -176,36 +228,36 @@ function changeDirection(event) {
   const goingRight = dx === 25;
   const goingLeft = dx === -25;
   if (isPoisoned) {
-    if (keyPressed === RIGHT_KEY && !goingRight) {
+    if ((keyPressed === RIGHT_KEY || keyPressed === D_KEY) && !goingRight) {
       dx = -25;
       dy = 0;
     }
-    if (keyPressed === DOWN_KEY && !goingDown) {
+    if ((keyPressed === DOWN_KEY || keyPressed === S_KEY) && !goingDown) {
       dx = 0;
       dy = -25;
     }
-    if (keyPressed === LEFT_KEY && !goingLeft) {
+    if ((keyPressed === LEFT_KEY || keyPressed === A_KEY) && !goingLeft) {
       dx = 25;
       dy = 0;
     }
-    if (keyPressed === UP_KEY && !goingUp) {
+    if ((keyPressed === UP_KEY || keyPressed === W_KEY) && !goingUp) {
       dx = 0;
       dy = 25;
     }
   } else {
-    if (keyPressed === LEFT_KEY && !goingRight) {
+    if ((keyPressed === LEFT_KEY || keyPressed === A_KEY) && !goingRight) {
       dx = -25;
       dy = 0;
     }
-    if (keyPressed === UP_KEY && !goingDown) {
+    if ((keyPressed === UP_KEY || keyPressed === W_KEY) && !goingDown) {
       dx = 0;
       dy = -25;
     }
-    if (keyPressed === RIGHT_KEY && !goingLeft) {
+    if ((keyPressed === RIGHT_KEY || keyPressed === D_KEY) && !goingLeft) {
       dx = 25;
       dy = 0;
     }
-    if (keyPressed === DOWN_KEY && !goingUp) {
+    if ((keyPressed === DOWN_KEY || keyPressed === S_KEY) && !goingUp) {
       dx = 0;
       dy = 25;
     }
@@ -277,7 +329,7 @@ function swapFoods() {
     }
     generateFood();
     drawFood();
-    swapSpeed -= 10;
+    swapSpeed -= 3;
     repeatTime++;
   }, swapSpeed);
 }

@@ -1,51 +1,202 @@
+@import url('https://fonts.googleapis.com/css2?family=Doppio+One&display=swap');
 * {
   padding: 0;
   margin: 0;
+  font-family: 'Doppio One', sans-serif;
 }
 #snakeGame {
   margin-top: 10px;
 }
 main {
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
   background-image: url(./img/bg.jpg);
-  background-repeat: repeat-x;
-  background-size: 100%;
-  padding: 25px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: center;
 }
-#dialogue {
-  visibility: hidden;
-  position: fixed;
+#menu {
+  margin-top: 100px;
   display: flex;
-  height: 100%;
-  width: 100%;
-  bottom: -520px;
-  left: 0;
-}
-#joi {
-  height: 100%;
-  width: 30%;
-  background-image: url(./img/joi.png);
+  justify-content: center;
+  height: 800px;
+  width: 800px;
+  background-image: url(./img/menu-bg.png);
   background-repeat: no-repeat;
   background-size: contain;
+}
+#menu-buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 200px;
+  margin: 350px auto;
+}
+#play-button {
+  cursor: pointer;
+  color: rgb(255, 255, 255);
+  font-size: 2rem;
+  border-radius: 5px;
+  border-color: black;
+  width: 500px;
+  height: 50px;
+
+  background: linear-gradient(
+    180deg,
+    rgba(255, 0, 207, 1) 0%,
+    rgba(0, 208, 255, 0.509) 100%
+  );
+}
+#play-button:hover {
+  color: black;
+  background: linear-gradient(
+    180deg,
+    rgb(1, 225, 255) 0%,
+    rgba(0, 208, 255, 0.509) 100%
+  );
+  border-color: black;
+}
+#options-button {
+  margin-top: 20px;
+  color: white;
+  cursor: pointer;
+  fill: rgb(0, 0, 0);
+  font-size: 2rem;
+  border-radius: 5px;
+  border-color: black;
+  width: 500px;
+  height: 50px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 0, 207, 1) 0%,
+    rgba(0, 208, 255, 0.509) 100%
+  );
+}
+#options-button:hover {
+  color: black;
+  fill: white;
+  background: linear-gradient(
+    180deg,
+    rgb(1, 225, 255) 0%,
+    rgba(0, 208, 255, 0.509) 100%
+  );
+  border-color: black;
+}
+#game {
+  display: none;
+}
+#dialogue {
+  display: none;
+  position: relative;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  bottom: 56px;
+}
+#dialogue-buttons {
+  width: 500px;
+  height: 200px;
+  position: relative;
+  /* right: 200px; */
+  /* bottom: 20px; */
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin-bottom: 20px;
+  margin-right: 20px;
+  margin-top: 20px;
+}
+#skip {
+  border-top: 2px solid black;
+  color: rgb(0, 0, 0);
+  stroke-width: 100px;
+  stroke: black;
+  font-size: 2rem;
+  width: 150px;
+  height: 20%;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  outline: none;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+}
+#skip:hover {
+  color: rgb(208, 255, 0);
+}
+#next {
+  cursor: pointer;
+  font-size: 2rem;
+  background-color: cyan;
+  border: 2px solid white;
+  width: 150px;
+  height: 30%;
+}
+#next:hover {
+  border: 2px solid black;
+  background-color: rgb(166, 255, 0);
+}
+#joi {
+  height: 400px;
+  width: 600px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  z-index: 2;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+#death-screen {
+  background-image: url(/img/death-screen.png);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  font-size: 2rem;
+  text-align: center;
+  display: none;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  height: 700px;
+  width: 700px;
+}
+#play-again {
+  cursor: pointer;
+  border: 2px solid red;
+  color: red;
+  background-color: black;
+  font-size: 2rem;
+  margin-top: 100px;
+  height: 70px;
+  width: 50%;
+}
+#play-again:hover {
+  border: 2px solid black;
+  background-color: rgb(149, 255, 255);
+  color: black;
 }
 #box {
   color: black;
   font-size: 3rem;
   text-align: center;
-  line-height: 15rem;
   height: 100%;
   width: 100%;
-  position: absolute;
-  z-index: -1;
-  align-self: center;
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  z-index: 1;
   background-repeat: no-repeat;
   background-image: url(./img/dialogue-box.png);
-  background-size: contain;
-  margin-top: 300px;
-  margin-right: 200px;
+  background-size: 100% 100%;
+}
+#text {
+  width: 70%;
+  padding-left: 400px;
+  align-self: center;
 }
 #ui {
   display: flex;
@@ -60,21 +211,15 @@ main {
 #hp {
   color: white;
 }
-#poison {
+#poison-screen {
   display: none;
-  position: absolute;
-  top: 50%;
-  left: 35%;
+}
+#poison {
   font-size: 50px;
   color: lightgreen;
   z-index: 1;
 }
 #poison-warning {
-  display: none;
-  position: absolute;
-  top: 60%;
-  left: 38%;
-  z-index: 1;
   font-size: 30px;
   color: white;
 }
