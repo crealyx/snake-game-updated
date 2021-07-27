@@ -30,7 +30,7 @@ const skillbar = document.querySelector('#skill-bar');
 
 let isPlaying = false;
 let isIntroFinished = false;
-let score = 40;
+let score = 0;
 let dx = 25;
 let dy = 0;
 let hp = 100;
@@ -39,10 +39,11 @@ let introPages = [
   `Your objective is simple,<br> gain score and BEAT THE GAME.`,
   '<span id="green">GREEN</span> chips heal you and fix any <span id="yellow">malfunction</span>. Also give points obviously.',
   '<span id="red">RED</span> chips damage you and steal your score.',
+  '<span id="blue">BLUE</span> chips appears at certain scores and unlock your abilities.',
+  'You can select your abilities in the skillbar then use them by holding SPACEBAR, with <span id="red">SOME</span> cost...',
   'BEWARE of the <span id="yellow">YELLOW</span> chips. <br>They might confuse your brain a little...',
   'But, there is a catch.. They all become the<span id="white"> SAME</span> later, so you have to use your memory.',
-  'You can also use your selected ABILITIES with SPACEBAR, with <span id="red">SOME</span> cost...',
-  'Oh, i almost forgot.. <br><span id="cyan">HE IS WAITING FOR YOU...</span>',
+  'Oh, i almost forgot.. <br><span id="blue">HE IS WAITING FOR YOU...</span>',
 ];
 let chips = {
   chip: { x: -25, y: -25 },
@@ -112,12 +113,12 @@ if (currentPage === 0) {
 updateIntroText();
 nextButton.addEventListener('click', () => {
   currentPage++;
-  if (currentPage === 7) {
+  if (currentPage === 8) {
     nextButton.textContent = 'PLAY';
     updateIntroText();
     return;
   }
-  if (currentPage === 8) {
+  if (currentPage === 9) {
     isIntroFinished = false;
     menu.style.display = 'none';
     game.style.display = 'block';
@@ -232,7 +233,10 @@ function drawWalls() {
 }
 function restartGame() {
   currentSkill = '';
-  skills.fastMove.activated = false;
+  skills.fastMove.unlocked = false;
+  skills.fastMove.unlocked = false;
+  skills.revealChips.activated = false;
+  skills.revealChips.activated = false;
   isSwapFinished = false;
   isPoisoned = false;
   score = 0;
@@ -270,9 +274,7 @@ function hasGameEnded() {
 }
 
 // Features
-function makeSkillPoint(params) {
-  generateChip();
-}
+
 function switchSkill() {
   document.addEventListener('keydown', (e) => {
     if (e.code === 'Digit1') {
@@ -346,44 +348,44 @@ function moveSnake() {
   const hasEatenRevealChipsChip =
     snake[0].x === chips.revealChipsChip.x &&
     snake[0].y === chips.revealChipsChip.y;
-  if (hasEatenChip && isSwapFinished === true) {
+  if (hasEatenChip && isSwapFinished) {
     if (isPoisoned) {
       isPoisoned = false;
       poisonScreen.style.display = 'none';
     }
+    isSwapFinished = false;
     score += 10;
     hp !== 100 ? (hp += 5) : hp;
     scoreDisplay.innerHTML = `Score: <span id="score-value">${score}</span>`;
     hpDisplay.innerHTML = `Hp: <span id="hp-value">${Math.trunc(hp)}</span>`;
-    isSwapFinished = false;
     swapChips();
-  } else if (hasEatenBadChip && isSwapFinished === true) {
+  } else if (hasEatenBadChip && isSwapFinished) {
+    isSwapFinished = false;
     score -= 10;
     hp -= 10;
     scoreDisplay.innerHTML = `Score: <span id="score-value">${score}</span>`;
     hpDisplay.innerHTML = `Hp: <span id="hp-value">${Math.trunc(hp)}</span>`;
-    isSwapFinished = false;
     swapChips();
-  } else if (hasEatenPoisonousChip && isSwapFinished === true) {
+  } else if (hasEatenPoisonousChip && isSwapFinished) {
+    isSwapFinished = false;
     isPoisoned = true;
     score -= 5;
     hp -= 5;
     poisonScreen.style.display = 'flex';
     scoreDisplay.innerHTML = `Score: <span id="score-value">${score}</span>`;
     hpDisplay.innerHTML = `Hp: <span id="hp-value">${Math.trunc(hp)}</span>`;
-    isSwapFinished = false;
     swapChips();
-  } else if (hasEatenFastMoveChip && isSwapFinished === true) {
+  } else if (hasEatenFastMoveChip && isSwapFinished) {
+    isSwapFinished = false;
     skills.fastMove.unlocked = true;
     score += 10;
     scoreDisplay.innerHTML = `Score: <span id="score-value">${score}</span>`;
-    isSwapFinished = false;
     swapChips();
-  } else if (hasEatenRevealChipsChip && isSwapFinished === true) {
+  } else if (hasEatenRevealChipsChip && isSwapFinished) {
+    isSwapFinished = false;
     skills.revealChips.unlocked = true;
     score += 10;
     scoreDisplay.innerHTML = `Score: <span id="score-value">${score}</span>`;
-    isSwapFinished = false;
     swapChips();
   } else {
     // Remove the last part of snake body
@@ -458,33 +460,39 @@ function generateChip() {
   chips.chip.y = randomChip(0, snakeGameboard.height - 25);
   chips.badChip.x = randomChip(0, snakeGameboard.width - 25);
   chips.badChip.y = randomChip(0, snakeGameboard.height - 25);
-  chips.poisonousChip.x = randomChip(0, snakeGameboard.width - 25);
-  chips.poisonousChip.y = randomChip(0, snakeGameboard.height - 25);
-  chips.fastMoveChip.x = randomChip(0, snakeGameboard.height - 25);
-  chips.fastMoveChip.y = randomChip(0, snakeGameboard.height - 25);
-  chips.revealChipsChip.x = randomChip(0, snakeGameboard.height - 25);
-  chips.revealChipsChip.y = randomChip(0, snakeGameboard.height - 25);
+  if (!isPoisoned) {
+    chips.poisonousChip.x = randomChip(0, snakeGameboard.width - 25);
+    chips.poisonousChip.y = randomChip(0, snakeGameboard.height - 25);
+  }
+  if (chips.fastMoveChip.unlocked) {
+    chips.fastMoveChip.x = randomChip(0, snakeGameboard.height - 25);
+    chips.fastMoveChip.y = randomChip(0, snakeGameboard.height - 25);
+  }
+  if (chips.revealChipsChip.unlocked) {
+    chips.revealChipsChip.x = randomChip(0, snakeGameboard.height - 25);
+    chips.revealChipsChip.y = randomChip(0, snakeGameboard.height - 25);
+  }
   snake.forEach((part) => {
-    const hasEaten = part.x == chips.chip.x && part.y == chips.chip.y;
+    const hasEaten = part.x === chips.chip.x && part.y === chips.chip.y;
     if (hasEaten) generateChip();
   });
   snake.forEach((part) => {
-    const hasEaten = part.x == chips.badChip.x && part.y == chips.badChip.y;
-    if (hasEaten) generateChip();
-  });
-  snake.forEach((part) => {
-    const hasEaten =
-      part.x == chips.poisonousChip.x && part.y == chips.poisonousChip.y;
-    if (hasEaten) generateChip();
-  });
-  snake.forEach((part) => {
-    const hasEaten =
-      part.x == chips.fastMoveChip.x && part.y == chips.fastMoveChip.y;
+    const hasEaten = part.x === chips.badChip.x && part.y === chips.badChip.y;
     if (hasEaten) generateChip();
   });
   snake.forEach((part) => {
     const hasEaten =
-      part.x == chips.revealChipsChip.x && part.y == chips.revealChipsChip.y;
+      part.x === chips.poisonousChip.x && part.y === chips.poisonousChip.y;
+    if (hasEaten) generateChip();
+  });
+  snake.forEach((part) => {
+    const hasEaten =
+      part.x === chips.fastMoveChip.x && part.y === chips.fastMoveChip.y;
+    if (hasEaten) generateChip();
+  });
+  snake.forEach((part) => {
+    const hasEaten =
+      part.x === chips.revealChipsChip.x && part.y === chips.revealChipsChip.y;
     if (hasEaten) generateChip();
   });
 }
@@ -516,8 +524,8 @@ function drawChip() {
     }
     if (score >= 60 && !skills.revealChips.unlocked) {
       makeChip(
-        '#002aff',
-        '#002aff',
+        '#ff00e1',
+        '#ff00e1',
         chips.revealChipsChip.x,
         chips.revealChipsChip.y
       );
