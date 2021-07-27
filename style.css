@@ -245,8 +245,7 @@ main {
   align-items: center;
   flex-direction: column;
 }
-#fast-move {
-}
+
 #scoreboard {
   background-color: rgba(179, 27, 0, 0.37);
   justify-content: space-around;
