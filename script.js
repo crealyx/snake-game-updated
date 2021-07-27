@@ -28,16 +28,9 @@ const hpDisplay = document.querySelector('#hp');
 const scoreDisplay = document.querySelector('#score');
 const skillbar = document.querySelector('#skill-bar');
 
-let foodX;
-let foodY;
-let badFoodX;
-let badFoodY;
-let poisonousFoodX;
-let poisonousFoodY;
-
 let isPlaying = false;
 let isIntroFinished = false;
-let score = 0;
+let score = 40;
 let dx = 25;
 let dy = 0;
 let hp = 100;
@@ -51,6 +44,13 @@ let introPages = [
   'You can also use your selected ABILITIES with SPACEBAR, with <span id="red">SOME</span> cost...',
   'Oh, i almost forgot.. <br><span id="cyan">HE IS WAITING FOR YOU...</span>',
 ];
+let chips = {
+  chip: { x: -25, y: -25 },
+  badChip: { x: -25, y: -25 },
+  poisonousChip: { x: -25, y: -25 },
+  fastMoveChip: { x: -25, y: -25 },
+  revealChipsChip: { x: -25, y: -25 },
+};
 let gameOver = false;
 let currentPage = 0;
 let changingDirection;
@@ -60,18 +60,18 @@ let isSwapFinished = false;
 let isPoisoned = false;
 let currentSkill = '';
 let skills = {
-  fastMove: { activated: false, damage: 0.1 },
-  revealChips: { activated: false, damage: 2.5 },
+  fastMove: { activated: false, damage: 0.1, unlocked: false },
+  revealChips: { activated: false, damage: 2.5, unlocked: false },
 };
 const boardBorder = 'red';
 const snakeColor = 'cyan';
 const snakeBorder = 'black';
-let foodColor = 'lightgreen';
-let foodBorderColor = 'black';
-let badFoodColor = 'red';
-let badFoodBorderColor = 'black';
-let poisonousFoodColor = 'yellow';
-let poisonousFoodBorderColor = 'black';
+let chipColor = 'lightgreen';
+let chipBorderColor = 'black';
+let badChipColor = 'red';
+let badChipBorderColor = 'black';
+let poisonousChipColor = 'yellow';
+let poisonousChipBorderColor = 'black';
 let snake = [
   { x: 200, y: 200 },
   { x: 190, y: 200 },
@@ -86,7 +86,7 @@ skipButton.addEventListener('click', () => {
   game.style.display = 'block';
   dialogue.style.display = 'none';
   main();
-  swapFoods();
+  swapChips();
   switchSkill();
   castSkill();
 });
@@ -100,7 +100,7 @@ playButton.addEventListener('click', () => {
   document.addEventListener('keydown', changeDirection);
   if (isIntroFinished) {
     main();
-    swapFoods();
+    swapChips();
     switchSkill();
     castSkill();
   }
@@ -123,7 +123,7 @@ nextButton.addEventListener('click', () => {
     game.style.display = 'block';
     dialogue.style.display = 'none';
     main();
-    swapFoods();
+    swapChips();
     switchSkill();
     castSkill();
     return;
@@ -146,7 +146,7 @@ playAgainButton.addEventListener('click', () => {
   deathScreen.style.display = 'none';
   restartGame();
   main();
-  swapFoods();
+  swapChips();
   switchSkill();
   castSkill();
 });
@@ -163,13 +163,14 @@ function main() {
     deathScreen.style.display = 'flex';
     boss.style.display = 'none';
     poisonScreen.style.display = 'none';
+    hpDisplay.innerHTML = `Hp: <span id="red">0</span>`;
+    scoreDisplay.innerHTML = `Score: <span id="red">${score}</span>`;
     return;
   }
   changingDirection = false;
   setTimeout(function onTick() {
     clearCanvas();
     if (isPoisoned) {
-      // ctx.shadowBlur = 20;
       ctx.shadowColor = '#f7ff93';
       ctx.globalAlpha = 0.4;
       ctx.fillStyle = 'yellow';
@@ -185,11 +186,16 @@ function main() {
     }
     if (skills.revealChips.activated) {
       hp -= skills.revealChips.damage;
+      ctx.shadowBlur = 50;
+      ctx.shadowColor = 'white';
+      ctx.globalAlpha = 0.2;
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, snakeGameboard.width - 25, snakeGameboard.height - 25);
     }
     hpDisplay.innerHTML = `Hp: <span id="hp-value">${Math.trunc(hp)}</span>`;
     ctx.globalAlpha = 1;
     drawWalls();
-    drawFood();
+    drawChip();
     moveSnake();
     drawSnake();
     main();
@@ -234,7 +240,7 @@ function restartGame() {
   dy = 0;
   hp = 100;
   gameOver = false;
-  gameSpeed = 100;
+  gameSpeed = 70;
   swapSpeed = 500;
   snake = [
     { x: 200, y: 200 },
@@ -264,6 +270,9 @@ function hasGameEnded() {
 }
 
 // Features
+function makeSkillPoint(params) {
+  generateChip();
+}
 function switchSkill() {
   document.addEventListener('keydown', (e) => {
     if (e.code === 'Digit1') {
@@ -276,24 +285,24 @@ function switchSkill() {
 function castSkill() {
   document.addEventListener('keyup', (e) => {
     if (e.code === 'Space') {
-      if (currentSkill === 'fastMove') {
+      if (currentSkill === 'fastMove' && skills.fastMove.unlocked) {
         skills.fastMove.activated = false;
         gameSpeed = 70;
       }
-      if (currentSkill === 'revealChips') {
+      if (currentSkill === 'revealChips' && skills.revealChips.unlocked) {
         skills.revealChips.activated = false;
       }
     }
   });
   document.addEventListener('keydown', (e) => {
     if (e.code === 'Space') {
-      if (currentSkill === 'fastMove') {
+      if (currentSkill === 'fastMove' && skills.fastMove.unlocked) {
         skills.fastMove.activated = true;
         gameSpeed = 20;
       }
-      if (currentSkill === 'revealChips' && !skills.revealChips.activated) {
+      if (currentSkill === 'revealChips' && skills.revealChips.unlocked) {
         skills.revealChips.activated = true;
-        drawFood();
+        drawChip();
       }
     }
   });
@@ -325,11 +334,19 @@ function moveSnake() {
   const head = { x: snake[0].x + dx, y: snake[0].y + dy };
   // Add the new head to the beginning of snake body
   snake.unshift(head);
-  const hasEatenFood = snake[0].x === foodX && snake[0].y === foodY;
-  const hasEatenBadFood = snake[0].x === badFoodX && snake[0].y === badFoodY;
-  const hasEatenPoisonousFood =
-    snake[0].x === poisonousFoodX && snake[0].y === poisonousFoodY;
-  if (hasEatenFood && isSwapFinished === true) {
+  const hasEatenChip =
+    snake[0].x === chips.chip.x && snake[0].y === chips.chip.y;
+  const hasEatenBadChip =
+    snake[0].x === chips.badChip.x && snake[0].y === chips.badChip.y;
+  const hasEatenPoisonousChip =
+    snake[0].x === chips.poisonousChip.x &&
+    snake[0].y === chips.poisonousChip.y;
+  const hasEatenFastMoveChip =
+    snake[0].x === chips.fastMoveChip.x && snake[0].y === chips.fastMoveChip.y;
+  const hasEatenRevealChipsChip =
+    snake[0].x === chips.revealChipsChip.x &&
+    snake[0].y === chips.revealChipsChip.y;
+  if (hasEatenChip && isSwapFinished === true) {
     if (isPoisoned) {
       isPoisoned = false;
       poisonScreen.style.display = 'none';
@@ -339,15 +356,15 @@ function moveSnake() {
     scoreDisplay.innerHTML = `Score: <span id="score-value">${score}</span>`;
     hpDisplay.innerHTML = `Hp: <span id="hp-value">${Math.trunc(hp)}</span>`;
     isSwapFinished = false;
-    swapFoods();
-  } else if (hasEatenBadFood && isSwapFinished === true) {
+    swapChips();
+  } else if (hasEatenBadChip && isSwapFinished === true) {
     score -= 10;
     hp -= 10;
     scoreDisplay.innerHTML = `Score: <span id="score-value">${score}</span>`;
     hpDisplay.innerHTML = `Hp: <span id="hp-value">${Math.trunc(hp)}</span>`;
     isSwapFinished = false;
-    swapFoods();
-  } else if (hasEatenPoisonousFood && isSwapFinished === true) {
+    swapChips();
+  } else if (hasEatenPoisonousChip && isSwapFinished === true) {
     isPoisoned = true;
     score -= 5;
     hp -= 5;
@@ -355,7 +372,19 @@ function moveSnake() {
     scoreDisplay.innerHTML = `Score: <span id="score-value">${score}</span>`;
     hpDisplay.innerHTML = `Hp: <span id="hp-value">${Math.trunc(hp)}</span>`;
     isSwapFinished = false;
-    swapFoods();
+    swapChips();
+  } else if (hasEatenFastMoveChip && isSwapFinished === true) {
+    skills.fastMove.unlocked = true;
+    score += 10;
+    scoreDisplay.innerHTML = `Score: <span id="score-value">${score}</span>`;
+    isSwapFinished = false;
+    swapChips();
+  } else if (hasEatenRevealChipsChip && isSwapFinished === true) {
+    skills.revealChips.unlocked = true;
+    score += 10;
+    scoreDisplay.innerHTML = `Score: <span id="score-value">${score}</span>`;
+    isSwapFinished = false;
+    swapChips();
   } else {
     // Remove the last part of snake body
     snake.pop();
@@ -415,8 +444,8 @@ function changeDirection(event) {
   }
 }
 
-// Food Functions
-function randomFood(min, max) {
+// Chip Functions
+function randomChip(min, max) {
   let coordinates = Math.round((Math.random() * (max - min) + min) / 25) * 25;
   while (coordinates === 0 || coordinates >= 750) {
     coordinates = Math.round((Math.random() * (max - min) + min) / 25) * 25;
@@ -424,54 +453,86 @@ function randomFood(min, max) {
   return coordinates;
 }
 
-function generateFood() {
-  foodX = randomFood(0, snakeGameboard.width - 25);
-  foodY = randomFood(0, snakeGameboard.height - 25);
-  badFoodX = randomFood(0, snakeGameboard.width - 25);
-  badFoodY = randomFood(0, snakeGameboard.height - 25);
-  poisonousFoodX = randomFood(0, snakeGameboard.width - 25);
-  poisonousFoodY = randomFood(0, snakeGameboard.height - 25);
+function generateChip() {
+  chips.chip.x = randomChip(0, snakeGameboard.width - 25);
+  chips.chip.y = randomChip(0, snakeGameboard.height - 25);
+  chips.badChip.x = randomChip(0, snakeGameboard.width - 25);
+  chips.badChip.y = randomChip(0, snakeGameboard.height - 25);
+  chips.poisonousChip.x = randomChip(0, snakeGameboard.width - 25);
+  chips.poisonousChip.y = randomChip(0, snakeGameboard.height - 25);
+  chips.fastMoveChip.x = randomChip(0, snakeGameboard.height - 25);
+  chips.fastMoveChip.y = randomChip(0, snakeGameboard.height - 25);
+  chips.revealChipsChip.x = randomChip(0, snakeGameboard.height - 25);
+  chips.revealChipsChip.y = randomChip(0, snakeGameboard.height - 25);
   snake.forEach((part) => {
-    const hasEaten = part.x == foodX && part.y == foodY;
-    if (hasEaten) generateFood();
+    const hasEaten = part.x == chips.chip.x && part.y == chips.chip.y;
+    if (hasEaten) generateChip();
   });
   snake.forEach((part) => {
-    const hasEaten = part.x == badFoodX && part.y == badFoodY;
-    if (hasEaten) generateFood();
+    const hasEaten = part.x == chips.badChip.x && part.y == chips.badChip.y;
+    if (hasEaten) generateChip();
+  });
+  snake.forEach((part) => {
+    const hasEaten =
+      part.x == chips.poisonousChip.x && part.y == chips.poisonousChip.y;
+    if (hasEaten) generateChip();
+  });
+  snake.forEach((part) => {
+    const hasEaten =
+      part.x == chips.fastMoveChip.x && part.y == chips.fastMoveChip.y;
+    if (hasEaten) generateChip();
+  });
+  snake.forEach((part) => {
+    const hasEaten =
+      part.x == chips.revealChipsChip.x && part.y == chips.revealChipsChip.y;
+    if (hasEaten) generateChip();
   });
 }
 
-function drawFood() {
+function drawChip() {
   if (isSwapFinished === true && !skills.revealChips.activated) {
-    makeFoodsSame();
+    makeChipsSame();
   } else {
-    // Food
-    ctx.fillStyle = '#32ff40';
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = 'green';
-    ctx.strokeStyle = 'black';
-    ctx.strokeRect(foodX, foodY, 25, 25);
-    ctx.fillRect(foodX, foodY, 25, 25);
-    // Bad Food
-    ctx.fillStyle = 'red';
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = 'red';
-    ctx.strokeStyle = 'black';
-    ctx.strokeRect(badFoodX, badFoodY, 25, 25);
-    ctx.fillRect(badFoodX, badFoodY, 25, 25);
-    // Poisonous Food
+    // Chip
+    makeChip('#32ff40', 'green', chips.chip.x, chips.chip.y);
+    // Bad Chip
+    makeChip('red', 'red', chips.badChip.x, chips.badChip.y);
+    // Poisonous Chip
     if (isPoisoned === false) {
-      ctx.fillStyle = '#eeff00';
-      ctx.shadowBlur = 20;
-      ctx.shadowColor = 'yellow';
-      ctx.strokeStyle = 'black';
-      ctx.strokeRect(poisonousFoodX, poisonousFoodY, 25, 25);
-      ctx.fillRect(poisonousFoodX, poisonousFoodY, 25, 25);
+      makeChip(
+        '#eeff00',
+        'yellow',
+        chips.poisonousChip.x,
+        chips.poisonousChip.y
+      );
+    }
+    if (score >= 30 && !skills.fastMove.unlocked) {
+      makeChip(
+        '#ff00e1',
+        '#ff00e1',
+        chips.fastMoveChip.x,
+        chips.fastMoveChip.y
+      );
+    }
+    if (score >= 60 && !skills.revealChips.unlocked) {
+      makeChip(
+        '#002aff',
+        '#002aff',
+        chips.revealChipsChip.x,
+        chips.revealChipsChip.y
+      );
     }
   }
 }
-
-function swapFoods() {
+function makeChip(fill, shadow, x, y) {
+  ctx.fillStyle = fill;
+  ctx.shadowBlur = 20;
+  ctx.shadowColor = shadow;
+  ctx.strokeStyle = 'black';
+  ctx.strokeRect(x, y, 25, 25);
+  ctx.fillRect(x, y, 25, 25);
+}
+function swapChips() {
   let repeatTime = 0;
   let delay = setInterval(() => {
     if (repeatTime === 5) {
@@ -479,32 +540,31 @@ function swapFoods() {
       isSwapFinished = true;
       return;
     }
-    generateFood();
-    drawFood();
+    generateChip();
+    drawChip();
     swapSpeed -= 3;
     repeatTime++;
   }, swapSpeed);
 }
 
-function makeFoodsSame() {
+function makeChipsSame() {
   if (!skills.revealChips.activated) {
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = 'white';
-    ctx.strokeStyle = 'black';
     ctx.lineWidth = 4;
     if (isPoisoned === false) {
-      ctx.fillStyle = 'white';
-      ctx.strokeStyle = 'black';
-      ctx.fillRect(poisonousFoodX, poisonousFoodY, 25, 25);
-      ctx.strokeRect(poisonousFoodX, poisonousFoodY, 25, 25);
+      makeChip('white', 'white', chips.poisonousChip.x, chips.poisonousChip.y);
     }
-    ctx.fillStyle = 'white';
-    ctx.strokeStyle = 'black';
-    ctx.fillRect(foodX, foodY, 25, 25);
-    ctx.strokeRect(foodX, foodY, 25, 25);
-    ctx.fillStyle = 'white';
-    ctx.strokeStyle = 'black';
-    ctx.fillRect(badFoodX, badFoodY, 25, 25);
-    ctx.strokeRect(badFoodX, badFoodY, 25, 25);
+    if (score >= 30 && !skills.fastMove.unlocked) {
+      makeChip('white', 'white', chips.fastMoveChip.x, chips.fastMoveChip.y);
+    }
+    if (score >= 60 && !skills.revealChips.unlocked) {
+      makeChip(
+        'white',
+        'white',
+        chips.revealChipsChip.x,
+        chips.revealChipsChip.y
+      );
+    }
+    makeChip('white', 'white', chips.chip.x, chips.chip.y);
+    makeChip('white', 'white', chips.badChip.x, chips.badChip.y);
   }
 }
