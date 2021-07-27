@@ -1,15 +1,8 @@
+// Queries
 const music = document.querySelector('#music');
-
 const snakeGameboard = document.querySelector('#snakeGame');
 const ctx = snakeGameboard.getContext('2d');
-const snakeHead = document.getElementById('snake-head');
-const snakeBody = document.getElementById('snake-body');
-const snakeSprite = document.getElementById('snake-sprite');
 const boardBg = document.getElementById('gameboard-bg');
-const shroom = document.getElementById('shroom');
-const apple = document.getElementById('apple');
-const burger = document.getElementById('burger');
-const sphere = document.getElementById('sphere');
 const wall = document.getElementById('wall');
 const playButton = document.querySelector('#play-button');
 const dialogue = document.querySelector('#dialogue');
@@ -28,8 +21,8 @@ const hpDisplay = document.querySelector('#hp');
 const scoreDisplay = document.querySelector('#score');
 const skillbar = document.querySelector('#skill-bar');
 
+// Variables
 let isPlaying = false;
-let isIntroFinished = false;
 let score = 0;
 let dx = 25;
 let dy = 0;
@@ -64,15 +57,7 @@ let skills = {
   fastMove: { activated: false, damage: 0.1, unlocked: false },
   revealChips: { activated: false, damage: 2.5, unlocked: false },
 };
-const boardBorder = 'red';
-const snakeColor = 'cyan';
-const snakeBorder = 'black';
-let chipColor = 'lightgreen';
-let chipBorderColor = 'black';
-let badChipColor = 'red';
-let badChipBorderColor = 'black';
-let poisonousChipColor = 'yellow';
-let poisonousChipBorderColor = 'black';
+
 let snake = [
   { x: 200, y: 200 },
   { x: 190, y: 200 },
@@ -80,18 +65,17 @@ let snake = [
   { x: 170, y: 200 },
   { x: 160, y: 200 },
 ];
-// Game
+
+// Event Listeners
 skipButton.addEventListener('click', () => {
-  isIntroFinished = false;
   menu.style.display = 'none';
   game.style.display = 'block';
   dialogue.style.display = 'none';
-  main();
-  swapChips();
-  switchSkill();
-  castSkill();
+  startGame();
 });
 playButton.addEventListener('click', () => {
+  updateIntroText();
+  previousButton.style.display = 'none';
   music.volume = 0.3;
   music.play();
   isPlaying = true;
@@ -99,18 +83,8 @@ playButton.addEventListener('click', () => {
   menu.style.marginTop = '0px';
   dialogue.style.display = 'flex';
   document.addEventListener('keydown', changeDirection);
-  if (isIntroFinished) {
-    main();
-    swapChips();
-    switchSkill();
-    castSkill();
-  }
 });
 
-if (currentPage === 0) {
-  previousButton.style.display = 'none';
-}
-updateIntroText();
 nextButton.addEventListener('click', () => {
   currentPage++;
   if (currentPage === 8) {
@@ -119,14 +93,11 @@ nextButton.addEventListener('click', () => {
     return;
   }
   if (currentPage === 9) {
-    isIntroFinished = false;
     menu.style.display = 'none';
     game.style.display = 'block';
     dialogue.style.display = 'none';
-    main();
-    swapChips();
-    switchSkill();
-    castSkill();
+    startGame();
+
     return;
   }
   previousButton.style.display = 'block';
@@ -145,14 +116,17 @@ playAgainButton.addEventListener('click', () => {
   skillbar.style.display = 'flex';
   snakeGameboard.style.display = 'block';
   deathScreen.style.display = 'none';
-  restartGame();
+  resetGame();
+  startGame();
+});
+
+// Main Functions
+function startGame() {
   main();
   swapChips();
   switchSkill();
   castSkill();
-});
-
-// Main Functions
+}
 function main() {
   hasGameEnded();
   if (hp <= 0) {
@@ -231,19 +205,19 @@ function drawWalls() {
     ctx.drawImage(wall, 775, i, 25, 25);
   }
 }
-function restartGame() {
+function resetGame() {
+  gameOver = false;
+  isSwapFinished = false;
   currentSkill = '';
   skills.fastMove.unlocked = false;
   skills.fastMove.unlocked = false;
   skills.revealChips.activated = false;
   skills.revealChips.activated = false;
-  isSwapFinished = false;
   isPoisoned = false;
   score = 0;
   dx = 25;
   dy = 0;
   hp = 100;
-  gameOver = false;
   gameSpeed = 70;
   swapSpeed = 500;
   snake = [
@@ -543,6 +517,9 @@ function makeChip(fill, shadow, x, y) {
 function swapChips() {
   let repeatTime = 0;
   let delay = setInterval(() => {
+    if (gameOver) {
+      clearInterval(delay);
+    }
     if (repeatTime === 5) {
       clearInterval(delay);
       isSwapFinished = true;
