@@ -224,12 +224,27 @@ main {
   bottom: 0;
 }
 #ui {
+  position: relative;
   display: flex;
   width: 100%;
   align-items: center;
   justify-content: space-around;
   text-align: center;
   font-size: 50px;
+}
+#skill-bar {
+  background-color: rgba(47, 255, 255, 0.418);
+  position: absolute;
+  top: 185px;
+  right: -200px;
+  height: 600px;
+  width: 200px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-direction: column;
+}
+#fast-move {
 }
 #scoreboard {
   background-color: rgba(179, 27, 0, 0.37);

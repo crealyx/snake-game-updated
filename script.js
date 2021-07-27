@@ -26,6 +26,7 @@ const boss = document.querySelector('#boss');
 const introText = document.querySelector('#intro-text');
 const hpDisplay = document.querySelector('#hp');
 const scoreDisplay = document.querySelector('#score');
+const skillbar = document.querySelector('#skill-bar');
 
 let foodX;
 let foodY;
@@ -57,7 +58,11 @@ let gameSpeed = 70;
 let swapSpeed = 500;
 let isSwapFinished = false;
 let isPoisoned = false;
-let fastMoveActivated = false;
+let currentSkill = '';
+let skills = {
+  fastMove: { activated: false, damage: 0.1 },
+  revealChips: { activated: false, damage: 2.5 },
+};
 const boardBorder = 'red';
 const snakeColor = 'cyan';
 const snakeBorder = 'black';
@@ -82,7 +87,8 @@ skipButton.addEventListener('click', () => {
   dialogue.style.display = 'none';
   main();
   swapFoods();
-  fastMoveSkill();
+  switchSkill();
+  castSkill();
 });
 playButton.addEventListener('click', () => {
   music.volume = 0.3;
@@ -95,7 +101,8 @@ playButton.addEventListener('click', () => {
   if (isIntroFinished) {
     main();
     swapFoods();
-    fastMoveSkill();
+    switchSkill();
+    castSkill();
   }
 });
 
@@ -117,7 +124,8 @@ nextButton.addEventListener('click', () => {
     dialogue.style.display = 'none';
     main();
     swapFoods();
-    fastMoveSkill();
+    switchSkill();
+    castSkill();
     return;
   }
   previousButton.style.display = 'block';
@@ -133,17 +141,24 @@ previousButton.addEventListener('click', () => {
   updateIntroText();
 });
 playAgainButton.addEventListener('click', () => {
+  skillbar.style.display = 'flex';
   snakeGameboard.style.display = 'block';
   deathScreen.style.display = 'none';
   restartGame();
   main();
   swapFoods();
-  fastMoveSkill();
+  switchSkill();
+  castSkill();
 });
-// Logic
+
+// Main Functions
 function main() {
   hasGameEnded();
+  if (hp <= 0) {
+    gameOver = true;
+  }
   if (gameOver) {
+    skillbar.style.display = 'none';
     snakeGameboard.style.display = 'none';
     deathScreen.style.display = 'flex';
     boss.style.display = 'none';
@@ -160,16 +175,16 @@ function main() {
       ctx.fillStyle = 'yellow';
       ctx.fillRect(0, 0, snakeGameboard.width - 25, snakeGameboard.height - 25);
     }
-    if (hp <= 0) {
-      gameOver = true;
-    }
-    if (fastMoveActivated) {
-      hp -= 0.1;
+    if (skills.fastMove.activated) {
+      hp -= skills.fastMove.damage;
       ctx.shadowBlur = 50;
       ctx.shadowColor = 'cyan';
       ctx.globalAlpha = 0.2;
       ctx.fillStyle = 'cyan';
       ctx.fillRect(0, 0, snakeGameboard.width - 25, snakeGameboard.height - 25);
+    }
+    if (skills.revealChips.activated) {
+      hp -= skills.revealChips.damage;
     }
     hpDisplay.innerHTML = `Hp: <span id="hp-value">${Math.trunc(hp)}</span>`;
     ctx.globalAlpha = 1;
@@ -183,8 +198,35 @@ function main() {
 function updateIntroText() {
   introText.innerHTML = introPages[currentPage];
 }
+
+function clearCanvas() {
+  ctx.shadowColor = '#ee00ff';
+  ctx.drawImage(
+    boardBg,
+    0,
+    0,
+    snakeGameboard.width - 25,
+    snakeGameboard.height - 25
+  );
+}
+function drawWalls() {
+  ctx.fillStyle = 'lightgray';
+  ctx.strokeStyle = 'black';
+
+  // Draw horizontal walls
+  for (let i = 0; i < snakeGameboard.width; i += 25) {
+    ctx.drawImage(wall, i, 0, 25, 25);
+    ctx.drawImage(wall, i, 775, 25, 25);
+  }
+  // Draw vertical walls
+  for (let i = 0; i < snakeGameboard.height; i += 25) {
+    ctx.drawImage(wall, 0, i, 25, 25);
+    ctx.drawImage(wall, 775, i, 25, 25);
+  }
+}
 function restartGame() {
-  fastMoveActivated = false;
+  currentSkill = '';
+  skills.fastMove.activated = false;
   isSwapFinished = false;
   isPoisoned = false;
   score = 0;
@@ -221,6 +263,43 @@ function hasGameEnded() {
   }
 }
 
+// Features
+function switchSkill() {
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Digit1') {
+      currentSkill = 'fastMove';
+    } else if (e.code === 'Digit2') {
+      currentSkill = 'revealChips';
+    }
+  });
+}
+function castSkill() {
+  document.addEventListener('keyup', (e) => {
+    if (e.code === 'Space') {
+      if (currentSkill === 'fastMove') {
+        skills.fastMove.activated = false;
+        gameSpeed = 70;
+      }
+      if (currentSkill === 'revealChips') {
+        skills.revealChips.activated = false;
+      }
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') {
+      if (currentSkill === 'fastMove') {
+        skills.fastMove.activated = true;
+        gameSpeed = 20;
+      }
+      if (currentSkill === 'revealChips' && !skills.revealChips.activated) {
+        skills.revealChips.activated = true;
+        drawFood();
+      }
+    }
+  });
+}
+
+// Snake Functions
 function drawSnake() {
   ctx.shadowBlur = 20;
   ctx.shadowColor = '#00bbff';
@@ -283,17 +362,6 @@ function moveSnake() {
   }
 }
 
-function clearCanvas() {
-  ctx.shadowColor = '#ee00ff';
-  ctx.drawImage(
-    boardBg,
-    0,
-    0,
-    snakeGameboard.width - 25,
-    snakeGameboard.height - 25
-  );
-}
-
 function changeDirection(event) {
   const LEFT_KEY = 37;
   const RIGHT_KEY = 39;
@@ -347,6 +415,7 @@ function changeDirection(event) {
   }
 }
 
+// Food Functions
 function randomFood(min, max) {
   let coordinates = Math.round((Math.random() * (max - min) + min) / 25) * 25;
   while (coordinates === 0 || coordinates >= 750) {
@@ -373,32 +442,32 @@ function generateFood() {
 }
 
 function drawFood() {
-  if (isSwapFinished === true) {
+  if (isSwapFinished === true && !skills.revealChips.activated) {
     makeFoodsSame();
-    return;
-  }
-  // Food
-  ctx.fillStyle = '#32ff40';
-  ctx.shadowBlur = 20;
-  ctx.shadowColor = 'green';
-  ctx.strokeStyle = 'black';
-  ctx.strokeRect(foodX, foodY, 25, 25);
-  ctx.fillRect(foodX, foodY, 25, 25);
-  // Bad Food
-  ctx.fillStyle = 'red';
-  ctx.shadowBlur = 20;
-  ctx.shadowColor = 'red';
-  ctx.strokeStyle = 'black';
-  ctx.strokeRect(badFoodX, badFoodY, 25, 25);
-  ctx.fillRect(badFoodX, badFoodY, 25, 25);
-  // Poisonous Food
-  if (isPoisoned === false) {
-    ctx.fillStyle = '#eeff00';
+  } else {
+    // Food
+    ctx.fillStyle = '#32ff40';
     ctx.shadowBlur = 20;
-    ctx.shadowColor = 'yellow';
+    ctx.shadowColor = 'green';
     ctx.strokeStyle = 'black';
-    ctx.strokeRect(poisonousFoodX, poisonousFoodY, 25, 25);
-    ctx.fillRect(poisonousFoodX, poisonousFoodY, 25, 25);
+    ctx.strokeRect(foodX, foodY, 25, 25);
+    ctx.fillRect(foodX, foodY, 25, 25);
+    // Bad Food
+    ctx.fillStyle = 'red';
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = 'red';
+    ctx.strokeStyle = 'black';
+    ctx.strokeRect(badFoodX, badFoodY, 25, 25);
+    ctx.fillRect(badFoodX, badFoodY, 25, 25);
+    // Poisonous Food
+    if (isPoisoned === false) {
+      ctx.fillStyle = '#eeff00';
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = 'yellow';
+      ctx.strokeStyle = 'black';
+      ctx.strokeRect(poisonousFoodX, poisonousFoodY, 25, 25);
+      ctx.fillRect(poisonousFoodX, poisonousFoodY, 25, 25);
+    }
   }
 }
 
@@ -418,53 +487,24 @@ function swapFoods() {
 }
 
 function makeFoodsSame() {
-  ctx.shadowBlur = 20;
-  ctx.shadowColor = 'white';
-  ctx.strokeStyle = 'black';
-  ctx.lineWidth = 4;
-  if (isPoisoned === false) {
+  if (!skills.revealChips.activated) {
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = 'white';
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 4;
+    if (isPoisoned === false) {
+      ctx.fillStyle = 'white';
+      ctx.strokeStyle = 'black';
+      ctx.fillRect(poisonousFoodX, poisonousFoodY, 25, 25);
+      ctx.strokeRect(poisonousFoodX, poisonousFoodY, 25, 25);
+    }
     ctx.fillStyle = 'white';
     ctx.strokeStyle = 'black';
-    ctx.fillRect(poisonousFoodX, poisonousFoodY, 25, 25);
-    ctx.strokeRect(poisonousFoodX, poisonousFoodY, 25, 25);
-  }
-  ctx.fillStyle = 'white';
-  ctx.strokeStyle = 'black';
-  ctx.fillRect(foodX, foodY, 25, 25);
-  ctx.strokeRect(foodX, foodY, 25, 25);
-  ctx.fillStyle = 'white';
-  ctx.strokeStyle = 'black';
-  ctx.fillRect(badFoodX, badFoodY, 25, 25);
-  ctx.strokeRect(badFoodX, badFoodY, 25, 25);
-}
-
-function fastMoveSkill() {
-  document.addEventListener('keyup', (e) => {
-    if (e.code === 'Space') {
-      fastMoveActivated = false;
-      gameSpeed = 70;
-    }
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.code === 'Space') {
-      fastMoveActivated = true;
-      gameSpeed = 20;
-    }
-  });
-}
-
-function drawWalls() {
-  ctx.fillStyle = 'lightgray';
-  ctx.strokeStyle = 'black';
-
-  // Draw horizontal walls
-  for (let i = 0; i < snakeGameboard.width; i += 25) {
-    ctx.drawImage(wall, i, 0, 25, 25);
-    ctx.drawImage(wall, i, 775, 25, 25);
-  }
-  // Draw vertical walls
-  for (let i = 0; i < snakeGameboard.height; i += 25) {
-    ctx.drawImage(wall, 0, i, 25, 25);
-    ctx.drawImage(wall, 775, i, 25, 25);
+    ctx.fillRect(foodX, foodY, 25, 25);
+    ctx.strokeRect(foodX, foodY, 25, 25);
+    ctx.fillStyle = 'white';
+    ctx.strokeStyle = 'black';
+    ctx.fillRect(badFoodX, badFoodY, 25, 25);
+    ctx.strokeRect(badFoodX, badFoodY, 25, 25);
   }
 }
