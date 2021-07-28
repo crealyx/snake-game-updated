@@ -3,6 +3,7 @@ const music = document.querySelector('#music');
 const snakeGameboard = document.querySelector('#snakeGame');
 const ctx = snakeGameboard.getContext('2d');
 const boardBg = document.getElementById('gameboard-bg');
+const bossFightBoardBg = document.getElementById('bossfight-gameboard-bg');
 const wall = document.getElementById('wall');
 const playButton = document.querySelector('#play-button');
 const dialogue = document.querySelector('#dialogue');
@@ -17,10 +18,13 @@ const playAgainButton = document.querySelector('#play-again');
 const ui = document.querySelector('#ui');
 const bossDisplay = document.querySelector('#boss');
 const bossHpDisplay = document.querySelector('#boss-hp');
+const bossHpValueDisplay = document.querySelector('#boss-hp-value');
 const introText = document.querySelector('#intro-text');
 const hpDisplay = document.querySelector('#hp');
 const scoreDisplay = document.querySelector('#score');
 const skillbar = document.querySelector('#skill-bar');
+const fastSkillDisplay = document.querySelector('#fast-move');
+const revealSkillDisplay = document.querySelector('#reveal-chips');
 
 // Variables
 let isPlaying = false;
@@ -40,8 +44,9 @@ let introPages = [
 let player = {
   attack: { x: '', y: '' },
   hp: 100,
-  score: 90,
+  score: 190,
   isAttackFinished: false,
+  skills: [],
 };
 let chips = {
   chip: { x: -25, y: -25 },
@@ -52,12 +57,18 @@ let chips = {
 };
 let game = {
   gameSpeed: 70,
-  swapSpeed: 500,
+  swapSpeed: 450,
   isSwapFinished: false,
   isPoisoned: false,
   gameOver: false,
 };
-let boss = { isAttackFinished: false, hp: 100, walls: [], summoned: false };
+let boss = {
+  isAttackFinished: false,
+  hp: 100,
+  walls: [],
+  summoned: false,
+  spawnScore: 200,
+};
 let currentPage = 0;
 let changingDirection;
 let currentSkill = '';
@@ -77,14 +88,31 @@ let snake = [
 // Event Listeners
 document.addEventListener('keydown', (e) => {
   // Skill Switch
-  if (e.code === 'Digit1') {
-    document.getElementById('reveal-chips').style.border = '';
-    document.getElementById('fast-move').style.border = '2px solid white';
-    currentSkill = 'fastMove';
-  } else if (e.code === 'Digit2') {
-    document.getElementById('fast-move').style.border = '';
-    document.getElementById('reveal-chips').style.border = '2px solid white';
-    currentSkill = 'revealChips';
+  if (e.code === 'Digit1' && skills.fastMove.unlocked) {
+    if (currentSkill === 'fastMove') {
+      currentSkill = '';
+      fastSkillDisplay.style.backgroundImage = `url(./img/fast-skill.png)`;
+    } else {
+      if (skills.revealChips.unlocked) {
+        revealSkillDisplay.style.backgroundImage = `url(./img/reveal-skill.png)`;
+      }
+      currentSkill = 'fastMove';
+      fastSkillDisplay.style.backgroundImage = `url(./img/fast-skill.png),
+      linear-gradient(360deg, rgba(0, 255, 55, 1) 0%, rgba(255, 255, 255, 1) 100%)`;
+    }
+  } else if (e.code === 'Digit2' && skills.revealChips.unlocked) {
+    if (currentSkill === 'revealChips') {
+      currentSkill = '';
+      revealSkillDisplay.style.backgroundImage = `url(./img/reveal-skill.png)`;
+    } else {
+      if (skills.fastMove.unlocked) {
+        console.log(skills.fastMove.unlocked);
+        fastSkillDisplay.style.backgroundImage = `url(./img/fast-skill.png)`;
+      }
+      currentSkill = 'revealChips';
+      revealSkillDisplay.style.backgroundImage = `url(./img/reveal-skill.png),
+      linear-gradient(360deg, rgba(0, 255, 55, 1) 0%, rgba(255, 255, 255, 1) 100%)`;
+    }
   }
   // Skill Cast
   else if (e.code === 'Space') {
@@ -96,6 +124,16 @@ document.addEventListener('keydown', (e) => {
       skills.revealChips.activated = true;
       drawChip();
     }
+    if (player.hp === 0 && deathScreen.style.display === 'flex') {
+      skillbar.style.display = 'flex';
+      snakeGameboard.style.display = 'block';
+      deathScreen.style.display = 'none';
+      resetGame();
+      startGame();
+    }
+  }
+  // Play Again
+  else if (e.code === 'Enter') {
   }
 });
 document.addEventListener('keyup', (e) => {
@@ -222,7 +260,10 @@ function main() {
     drawWalls();
     drawChip();
     moveSnake();
-    if (player.score >= 100) {
+    if (player.score >= boss.spawnScore) {
+      if (bossDisplay.style.display === 'none') {
+        bossDisplay.style.display = 'flex';
+      }
       bossFight();
     }
     drawSnake();
@@ -234,14 +275,25 @@ function updateIntroText() {
 }
 
 function clearCanvas() {
-  ctx.shadowColor = '#ee00ff';
-  ctx.drawImage(
-    boardBg,
-    0,
-    0,
-    snakeGameboard.width - 25,
-    snakeGameboard.height - 25
-  );
+  if (boss.summoned) {
+    ctx.shadowColor = '#ee00ff';
+    ctx.drawImage(
+      bossFightBoardBg,
+      0,
+      0,
+      snakeGameboard.width - 25,
+      snakeGameboard.height - 25
+    );
+  } else {
+    ctx.shadowColor = '#ee00ff';
+    ctx.drawImage(
+      boardBg,
+      0,
+      0,
+      snakeGameboard.width - 25,
+      snakeGameboard.height - 25
+    );
+  }
 }
 function drawWalls() {
   ctx.fillStyle = 'lightgray';
@@ -259,12 +311,18 @@ function drawWalls() {
   }
 }
 function resetGame() {
+  player.attack = { x: '', y: '' };
+  boss.walls = [];
+  player.isAttackFinished = false;
+  boss.isAttackFinished = false;
+  boss.hp = 100;
+  boss.summoned = false;
   game.gameOver = false;
   game.isSwapFinished = false;
   currentSkill = '';
   skills.fastMove.unlocked = false;
-  skills.fastMove.unlocked = false;
-  skills.revealChips.activated = false;
+  skills.revealChips.unlocked = false;
+  skills.fastMove.activated = false;
   skills.revealChips.activated = false;
   game.isPoisoned = false;
   player.score = 0;
@@ -272,7 +330,7 @@ function resetGame() {
   dy = 0;
   player.hp = 100;
   game.gameSpeed = 70;
-  game.swapSpeed = 500;
+  game.swapSpeed = 450;
   snake = [
     { x: 200, y: 200 },
     { x: 190, y: 200 },
@@ -293,6 +351,7 @@ function hasGameEnded() {
 
   for (let i = 4; i < snake.length; i++) {
     if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) {
+      player.hp = 0;
       game.gameOver = true;
       return;
     }
@@ -308,10 +367,11 @@ function hasGameEnded() {
   //     return;
   //   }
   // }
-  if (hitLeftWall || hitRightWall || hitTopWall || hitBottomWall) {
-    game.gameOver = true;
-    return;
-  }
+  // if (hitLeftWall || hitRightWall || hitTopWall || hitBottomWall) {
+  //   player.hp = 0;
+  //   game.gameOver = true;
+  //   return;
+  // }
 }
 // function teleport() {
 //   const hitLeftWall = snake[0].x < 0;
@@ -335,8 +395,7 @@ function hasGameEnded() {
 // Boss
 
 function bossFight() {
-  console.log('bossfight');
-  bossHpDisplay.textContent = `Boss Hp: ${boss.hp}`;
+  bossHpValueDisplay.textContent = `${boss.hp}`;
   let attackNumber = 30;
   boss.summoned = true;
   if (boss.hp > 0 && !boss.isAttackFinished) {
@@ -415,20 +474,32 @@ function moveSnake() {
   const hasEatenRevealChipsChip =
     snake[0].x === chips.revealChipsChip.x &&
     snake[0].y === chips.revealChipsChip.y;
-  const hasEatenAttackChip =
-    snake[0].x === player.attack.x && snake[0].y === player.attack.y;
-  for (let i = 0; i < boss.walls.length; i++) {
-    const hasEatenBossAttackChip =
-      snake[0].x === boss.walls[i].newWallX &&
-      snake[0].y === boss.walls[i].newWallY;
-    if (hasEatenBossAttackChip) {
-      player.hp -= 30;
+
+  if (boss.summoned) {
+    for (let i = 0; i < boss.walls.length; i++) {
+      const hasEatenBossAttackChip =
+        snake[0].x === boss.walls[i].newWallX &&
+        snake[0].y === boss.walls[i].newWallY;
+      if (hasEatenBossAttackChip) {
+        player.hp -= 30;
+        scoreDisplay.innerHTML = `Score: <span id="score-value">${player.score}</span>`;
+        hpDisplay.innerHTML = `Hp: <span id="hp-value">${Math.trunc(
+          player.hp
+        )}</span>`;
+        boss.isAttackFinished = false;
+        boss.walls = [];
+      }
+    }
+    const hasEatenAttackChip =
+      snake[0].x === player.attack.x && snake[0].y === player.attack.y;
+    if (hasEatenAttackChip) {
+      boss.hp -= 25;
+      player.score += 50;
+      player.hp !== 100 ? (player.hp += 20) : player.hp;
       scoreDisplay.innerHTML = `Score: <span id="score-value">${player.score}</span>`;
-      hpDisplay.innerHTML = `Hp: <span id="hp-value">${Math.trunc(
-        player.hp
-      )}</span>`;
-      boss.isAttackFinished = false;
       boss.walls = [];
+      boss.isAttackFinished = false;
+      player.isAttackFinished = false;
     }
   }
   if (hasEatenChip && game.isSwapFinished) {
@@ -439,6 +510,8 @@ function moveSnake() {
     game.isSwapFinished = false;
     player.score += 10;
     player.hp !== 100 ? (player.hp += 5) : player.hp;
+    game.swapSpeed -= 3;
+
     scoreDisplay.innerHTML = `Score: <span id="score-value">${player.score}</span>`;
     hpDisplay.innerHTML = `Hp: <span id="hp-value">${Math.trunc(
       player.hp
@@ -447,7 +520,7 @@ function moveSnake() {
   } else if (hasEatenBadChip && game.isSwapFinished) {
     game.isSwapFinished = false;
     player.score -= 10;
-    player.hp -= 10;
+    player.hp >= 10 ? (player.hp -= 10) : player.hp;
     scoreDisplay.innerHTML = `Score: <span id="score-value">${player.score}</span>`;
     hpDisplay.innerHTML = `Hp: <span id="hp-value">${Math.trunc(
       player.hp
@@ -457,33 +530,40 @@ function moveSnake() {
     game.isSwapFinished = false;
     game.isPoisoned = true;
     player.score -= 5;
-    player.hp -= 5;
+    player.hp >= 5 ? (player.hp -= 5) : player.hp;
     poisonScreen.style.display = 'flex';
     scoreDisplay.innerHTML = `Score: <span id="score-value">${player.score}</span>`;
     hpDisplay.innerHTML = `Hp: <span id="hp-value">${Math.trunc(
       player.hp
     )}</span>`;
     swapChips();
-  } else if (hasEatenFastMoveChip && game.isSwapFinished) {
+  } else if (
+    !skills.fastMove.unlocked &&
+    hasEatenFastMoveChip &&
+    game.isSwapFinished
+  ) {
     game.isSwapFinished = false;
     skills.fastMove.unlocked = true;
+    chips.fastMoveChip.x = '';
+    chips.fastMoveChip.y = '';
     player.score += 10;
+    fastSkillDisplay.style.display = 'block';
+
     scoreDisplay.innerHTML = `Score: <span id="score-value">${player.score}</span>`;
     swapChips();
-  } else if (hasEatenRevealChipsChip && game.isSwapFinished) {
+  } else if (
+    !skills.revealChips.unlocked &&
+    hasEatenRevealChipsChip &&
+    game.isSwapFinished
+  ) {
     game.isSwapFinished = false;
     skills.revealChips.unlocked = true;
+    chips.revealChipsChip.x = '';
+    chips.revealChipsChip.y = '';
     player.score += 10;
+    revealSkillDisplay.style.display = 'block';
     scoreDisplay.innerHTML = `Score: <span id="score-value">${player.score}</span>`;
     swapChips();
-  } else if (hasEatenAttackChip) {
-    boss.hp -= 25;
-    player.score += 50;
-    player.hp += 20;
-    scoreDisplay.innerHTML = `Score: <span id="score-value">${player.score}</span>`;
-    boss.walls = [];
-    boss.isAttackFinished = false;
-    player.isAttackFinished = false;
   } else {
     // Remove the last part of snake body
     snake.pop();
@@ -561,37 +641,39 @@ function generateChip() {
     chips.poisonousChip.x = randomChip(0, snakeGameboard.width - 25);
     chips.poisonousChip.y = randomChip(0, snakeGameboard.height - 25);
   }
-  if (chips.fastMoveChip.unlocked) {
+  if (!skills.fastMove.unlocked && player.score >= 30) {
+    console.log('fast');
     chips.fastMoveChip.x = randomChip(0, snakeGameboard.height - 25);
     chips.fastMoveChip.y = randomChip(0, snakeGameboard.height - 25);
   }
-  if (chips.revealChipsChip.unlocked) {
+  if (!skills.revealChips.unlocked && player.score >= 60) {
+    console.log('reveal');
     chips.revealChipsChip.x = randomChip(0, snakeGameboard.height - 25);
     chips.revealChipsChip.y = randomChip(0, snakeGameboard.height - 25);
   }
-  snake.forEach((part) => {
-    const hasEaten = part.x === chips.chip.x && part.y === chips.chip.y;
-    if (hasEaten) generateChip();
-  });
-  snake.forEach((part) => {
-    const hasEaten = part.x === chips.badChip.x && part.y === chips.badChip.y;
-    if (hasEaten) generateChip();
-  });
-  snake.forEach((part) => {
-    const hasEaten =
-      part.x === chips.poisonousChip.x && part.y === chips.poisonousChip.y;
-    if (hasEaten) generateChip();
-  });
-  snake.forEach((part) => {
-    const hasEaten =
-      part.x === chips.fastMoveChip.x && part.y === chips.fastMoveChip.y;
-    if (hasEaten) generateChip();
-  });
-  snake.forEach((part) => {
-    const hasEaten =
-      part.x === chips.revealChipsChip.x && part.y === chips.revealChipsChip.y;
-    if (hasEaten) generateChip();
-  });
+  // snake.forEach((part) => {
+  //   const hasEaten = part.x === chips.chip.x && part.y === chips.chip.y;
+  //   if (hasEaten) generateChip();
+  // });
+  // snake.forEach((part) => {
+  //   const hasEaten = part.x === chips.badChip.x && part.y === chips.badChip.y;
+  //   if (hasEaten) generateChip();
+  // });
+  // snake.forEach((part) => {
+  //   const hasEaten =
+  //     part.x === chips.poisonousChip.x && part.y === chips.poisonousChip.y;
+  //   if (hasEaten) generateChip();
+  // });
+  // snake.forEach((part) => {
+  //   const hasEaten =
+  //     part.x === chips.fastMoveChip.x && part.y === chips.fastMoveChip.y;
+  //   if (hasEaten) generateChip();
+  // });
+  // snake.forEach((part) => {
+  //   const hasEaten =
+  //     part.x === chips.revealChipsChip.x && part.y === chips.revealChipsChip.y;
+  //   if (hasEaten) generateChip();
+  // });
 }
 
 function drawChip() {
@@ -638,7 +720,7 @@ function makeChip(fill, shadow, x, y) {
   ctx.fillRect(x, y, 25, 25);
 }
 function swapChips() {
-  if (!boss.summoned && player.score !== 100) {
+  if (!boss.summoned && player.score !== boss.spawnScore) {
     let repeatTime = 0;
     let delay = setInterval(() => {
       if (game.gameOver) {
@@ -651,7 +733,6 @@ function swapChips() {
       }
       generateChip();
       drawChip();
-      game.swapSpeed -= 3;
       repeatTime++;
     }, game.swapSpeed);
   }

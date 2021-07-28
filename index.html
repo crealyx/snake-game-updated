@@ -42,7 +42,10 @@
         <div id="ui">
           <div id="boss">
             <img id="boss-img" src="./img/boss.png" alt="" />
-            <div id="boss-hp">Boss Hp: 100</div>
+            <div id="boss-hp">
+              <span id="red">Hp:</span>
+              <p id="boss-hp-value">100</p>
+            </div>
           </div>
           <div id="scoreboard">
             <div id="hp">Hp: <span id="hp-value">100</span></div>
@@ -52,8 +55,10 @@
             <img id="chip" src="./img/chip.svg" alt="" />
           </div>
           <div id="skill-bar">
-            <div id="fast-move">Fast Move</div>
-            <div id="reveal-chips">Reveal Chips</div>
+            <div id="skills">
+              <div id="fast-move"></div>
+              <div id="reveal-chips"></div>
+            </div>
           </div>
         </div>
         <canvas id="snakeGame" width="800px" height="800px"></canvas>
@@ -64,6 +69,11 @@
       <audio id="music">
         <source src="./audio/snake2077_music.mp3" />
       </audio>
+      <img
+        id="bossfight-gameboard-bg"
+        src="./img/bossfight-gameboard.png"
+        alt=""
+      />
       <img id="gameboard-bg" src="./img/gameboard.png" alt="" />
       <img id="wall" src="./img/wall.png" alt="" />
     </main>
