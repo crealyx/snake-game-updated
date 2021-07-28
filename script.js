@@ -16,6 +16,7 @@ const deathScreen = document.querySelector('#death-screen');
 const playAgainButton = document.querySelector('#play-again');
 const ui = document.querySelector('#ui');
 const bossDisplay = document.querySelector('#boss');
+const bossHpDisplay = document.querySelector('#boss-hp');
 const introText = document.querySelector('#intro-text');
 const hpDisplay = document.querySelector('#hp');
 const scoreDisplay = document.querySelector('#score');
@@ -173,9 +174,6 @@ function main() {
     player.hp
   )}</span>`;
   hasGameEnded();
-  if (player.score >= 100) {
-    bossFight();
-  }
   if (player.hp <= 0) {
     game.gameOver = true;
   }
@@ -224,6 +222,9 @@ function main() {
     drawWalls();
     drawChip();
     moveSnake();
+    if (player.score >= 100) {
+      bossFight();
+    }
     drawSnake();
     main();
   }, game.gameSpeed);
@@ -334,6 +335,8 @@ function hasGameEnded() {
 // Boss
 
 function bossFight() {
+  console.log('bossfight');
+  bossHpDisplay.textContent = `Boss Hp: ${boss.hp}`;
   let attackNumber = 30;
   boss.summoned = true;
   if (boss.hp > 0 && !boss.isAttackFinished) {
@@ -358,7 +361,7 @@ function bossFight() {
   if (player.isAttackFinished) {
     makeChip('#32ff40', 'green', player.attack.x, player.attack.y, 25, 25);
   } else if (boss.hp <= 0) {
-    boss.style.display = 'none';
+    bossDisplay.style.display = 'none';
   }
   function bossAttack() {
     for (let i = 0; i < attackNumber; i++) {
@@ -478,10 +481,9 @@ function moveSnake() {
     player.score += 50;
     player.hp += 20;
     scoreDisplay.innerHTML = `Score: <span id="score-value">${player.score}</span>`;
-    player.isAttackFinished = true;
     boss.walls = [];
-    // player.attack.x = -25;
-    // player.attack.y = -25;
+    boss.isAttackFinished = false;
+    player.isAttackFinished = false;
   } else {
     // Remove the last part of snake body
     snake.pop();
@@ -656,7 +658,7 @@ function swapChips() {
 }
 
 function makeChipsSame() {
-  if (!skills.revealChips.activated) {
+  if (!skills.revealChips.activated && !boss.summoned) {
     ctx.lineWidth = 4;
     if (game.isPoisoned === false) {
       makeChip('white', 'white', chips.poisonousChip.x, chips.poisonousChip.y);

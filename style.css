@@ -217,12 +217,27 @@ main {
 }
 #boss {
   display: none;
+}
+#boss-img {
   position: absolute;
   width: 300px;
   height: 300px;
   top: 620px;
   left: 450px;
   bottom: 0;
+}
+#boss-hp {
+  color: white;
+  background-color: rgba(255, 47, 47, 0.418);
+  position: absolute;
+  top: 185px;
+  left: -200px;
+  height: 600px;
+  width: 200px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-direction: column;
 }
 #ui {
   position: relative;
