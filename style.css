@@ -240,7 +240,7 @@ main {
 }
 #boss-hp {
   color: white;
-  margin-top: 150px;
+  margin-top: 320px;
   margin-left: 70px;
   font-size: 3.5rem;
   font-weight: 900;
@@ -266,7 +266,7 @@ main {
   width: 300px;
 }
 #skills {
-  margin-top: 120px;
+  margin-top: 14px;
   margin-right: 80px;
   height: 100%;
   display: flex;
@@ -274,11 +274,13 @@ main {
   flex-direction: column;
 }
 #fast-move {
+  margin-top: 100px;
+  position: relative;
   display: none;
   border: 5px solid black;
   border-radius: 10px;
-  height: 120px;
-  width: 120px;
+  height: 90px;
+  width: 90px;
   background-color: gray;
   background-image: url(./img/fast-skill.png);
   background-size: 100% auto;
@@ -286,18 +288,43 @@ main {
   background-repeat: no-repeat;
 }
 #reveal-chips {
+  position: relative;
   display: none;
   border: 5px solid black;
   border-radius: 10px;
   margin-top: 50px;
-  height: 120px;
-  width: 120px;
+  height: 90px;
+  width: 90px;
   background-color: gray;
   background-image: url(./img/reveal-skill.png);
   background-size: 100% auto;
   background-position: center;
   background-repeat: no-repeat;
 }
+#teleport {
+  position: relative;
+  display: none;
+  border: 5px solid black;
+  border-radius: 10px;
+  margin-top: 50px;
+  height: 90px;
+  width: 90px;
+  background-color: gray;
+  background-image: url(./img/teleport.png);
+  background-size: 100% auto;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+#fast-text,
+#reveal-text,
+#teleport-text {
+  color: rgb(0, 0, 0);
+  position: absolute;
+  bottom: 95px;
+  left: 40px;
+  font-size: 2rem;
+}
+
 #scoreboard {
   background-color: rgba(179, 27, 0, 0.37);
   justify-content: space-around;

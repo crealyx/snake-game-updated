@@ -25,6 +25,7 @@ const scoreDisplay = document.querySelector('#score');
 const skillbar = document.querySelector('#skill-bar');
 const fastSkillDisplay = document.querySelector('#fast-move');
 const revealSkillDisplay = document.querySelector('#reveal-chips');
+const teleportSkillDisplay = document.querySelector('#teleport');
 
 // Variables
 let isPlaying = false;
@@ -44,7 +45,7 @@ let introPages = [
 let player = {
   attack: { x: '', y: '' },
   hp: 100,
-  score: 190,
+  score: 0,
   isAttackFinished: false,
   skills: [],
 };
@@ -67,7 +68,7 @@ let boss = {
   hp: 100,
   walls: [],
   summoned: false,
-  spawnScore: 200,
+  spawnScore: 120,
 };
 let currentPage = 0;
 let changingDirection;
@@ -75,6 +76,7 @@ let currentSkill = '';
 let skills = {
   fastMove: { activated: false, damage: 0.1, unlocked: false },
   revealChips: { activated: false, damage: 2.5, unlocked: false },
+  teleport: { activated: false, damage: 0.3, unlocked: false },
 };
 
 let snake = [
@@ -89,12 +91,15 @@ let snake = [
 document.addEventListener('keydown', (e) => {
   // Skill Switch
   if (e.code === 'Digit1' && skills.fastMove.unlocked) {
+    console.log(skills.teleport.unlocked);
     if (currentSkill === 'fastMove') {
       currentSkill = '';
       fastSkillDisplay.style.backgroundImage = `url(./img/fast-skill.png)`;
     } else {
-      if (skills.revealChips.unlocked) {
+      if (currentSkill === 'revealChips') {
         revealSkillDisplay.style.backgroundImage = `url(./img/reveal-skill.png)`;
+      } else if (currentSkill === 'teleport') {
+        teleportSkillDisplay.style.backgroundImage = `url(./img/teleport.png)`;
       }
       currentSkill = 'fastMove';
       fastSkillDisplay.style.backgroundImage = `url(./img/fast-skill.png),
@@ -105,12 +110,28 @@ document.addEventListener('keydown', (e) => {
       currentSkill = '';
       revealSkillDisplay.style.backgroundImage = `url(./img/reveal-skill.png)`;
     } else {
-      if (skills.fastMove.unlocked) {
-        console.log(skills.fastMove.unlocked);
+      if (currentSkill === 'fastMove') {
         fastSkillDisplay.style.backgroundImage = `url(./img/fast-skill.png)`;
+      } else if (currentSkill === 'teleport') {
+        teleportSkillDisplay.style.backgroundImage = `url(./img/teleport.png)`;
       }
       currentSkill = 'revealChips';
       revealSkillDisplay.style.backgroundImage = `url(./img/reveal-skill.png),
+      linear-gradient(360deg, rgba(0, 255, 55, 1) 0%, rgba(255, 255, 255, 1) 100%)`;
+    }
+  } else if (e.code === 'Digit3' && skills.teleport.unlocked) {
+    console.log('sa');
+    if (currentSkill === 'teleport') {
+      currentSkill = '';
+      teleportSkillDisplay.style.backgroundImage = `url(./img/teleport.png)`;
+    } else {
+      if (currentSkill === 'fastMove') {
+        fastSkillDisplay.style.backgroundImage = `url(./img/fast-skill.png)`;
+      } else if (currentSkill === 'revealChips') {
+        revealChipsSkillDisplay.style.backgroundImage = `url(./img/reveal-skill.png)`;
+      }
+      currentSkill = 'teleport';
+      teleportSkillDisplay.style.backgroundImage = `url(./img/teleport.png),
       linear-gradient(360deg, rgba(0, 255, 55, 1) 0%, rgba(255, 255, 255, 1) 100%)`;
     }
   }
@@ -123,6 +144,9 @@ document.addEventListener('keydown', (e) => {
     if (currentSkill === 'revealChips' && skills.revealChips.unlocked) {
       skills.revealChips.activated = true;
       drawChip();
+    }
+    if (currentSkill === 'teleport' && skills.teleport.unlocked) {
+      skills.teleport.activated = true;
     }
     if (player.hp === 0 && deathScreen.style.display === 'flex') {
       skillbar.style.display = 'flex';
@@ -145,6 +169,9 @@ document.addEventListener('keyup', (e) => {
     }
     if (currentSkill === 'revealChips' && skills.revealChips.unlocked) {
       skills.revealChips.activated = false;
+    }
+    if (currentSkill === 'teleport' && skills.teleport.unlocked) {
+      skills.teleport.activated = false;
     }
   }
 });
@@ -225,12 +252,6 @@ function main() {
     scoreDisplay.innerHTML = `Score: <span id="red">${player.score}</span>`;
     return;
   }
-  if (player.score >= 30) {
-    chips.fastMoveChip.unlocked = true;
-  }
-  if (player.score >= 60) {
-    chips.revealChipsChip.unlocked = true;
-  }
   changingDirection = false;
   setTimeout(function onTick() {
     clearCanvas();
@@ -256,6 +277,15 @@ function main() {
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, snakeGameboard.width - 25, snakeGameboard.height - 25);
     }
+
+    if (skills.teleport.activated) {
+      player.hp -= skills.teleport.damage;
+      ctx.shadowBlur = 50;
+      ctx.shadowColor = '#ff9900';
+      ctx.globalAlpha = 0.2;
+      ctx.fillStyle = '#ff9900';
+      ctx.fillRect(0, 0, snakeGameboard.width - 25, snakeGameboard.height - 25);
+    }
     ctx.globalAlpha = 1;
     drawWalls();
     drawChip();
@@ -263,6 +293,15 @@ function main() {
     if (player.score >= boss.spawnScore) {
       if (bossDisplay.style.display === 'none') {
         bossDisplay.style.display = 'flex';
+      }
+      skills.teleport.unlocked = true;
+      console.log(teleportSkillDisplay.style.display);
+      if (
+        teleportSkillDisplay.style.display === '' &&
+        skills.teleport.unlocked
+      ) {
+        console.log('works');
+        teleportSkillDisplay.style.display = 'block';
       }
       bossFight();
     }
@@ -357,21 +396,39 @@ function hasGameEnded() {
     }
   }
   // Boss instant death walls
-
-  // for (let i = 0; i < boss.walls.length; i++) {
-  //   if (
-  //     snake[0].x === boss.walls[i].newWallX &&
-  //     snake[0].y === boss.walls[i].newWallY
-  //   ) {
-  //     gameOver = true;
-  //     return;
-  //   }
-  // }
-  // if (hitLeftWall || hitRightWall || hitTopWall || hitBottomWall) {
-  //   player.hp = 0;
-  //   game.gameOver = true;
-  //   return;
-  // }
+  if (!skills.teleport.activated) {
+    for (let i = 0; i < boss.walls.length; i++) {
+      if (
+        snake[0].x === boss.walls[i].newWallX &&
+        snake[0].y === boss.walls[i].newWallY
+      ) {
+        gameOver = true;
+        return;
+      }
+    }
+    if (hitLeftWall || hitRightWall || hitTopWall || hitBottomWall) {
+      player.hp = 0;
+      game.gameOver = true;
+      return;
+    }
+  } else {
+    const hitLeftWall = snake[0].x < 0;
+    const hitRightWall = snake[0].x > snakeGameboard.width - 25;
+    const hitTopWall = snake[0].y < 0;
+    const hitBottomWall = snake[0].y > snakeGameboard.height - 25;
+    if (hitLeftWall) {
+      snake[0].x = snakeGameboard.width - 25;
+    }
+    if (hitRightWall) {
+      snake[0].x = 0;
+    }
+    if (hitBottomWall) {
+      snake[0].y = 0;
+    }
+    if (hitTopWall) {
+      snake[0].y = snakeGameboard.width - 25;
+    }
+  }
 }
 // function teleport() {
 //   const hitLeftWall = snake[0].x < 0;
