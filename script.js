@@ -582,6 +582,8 @@ function drawWalls() {
   }
 }
 function resetGame() {
+  boss.introFinished = false;
+  boss.introStarted = false;
   player.attack = { x: '', y: '' };
   boss.walls = [];
   player.isAttackFinished = false;
