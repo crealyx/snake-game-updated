@@ -12,7 +12,7 @@
       <div id="menu">
         <div id="menu-buttons">
           <button id="play-button">Play</button>
-          <button id="options-button">
+          <!-- <button id="options-button"> -->
             Options
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -28,6 +28,7 @@
         </div>
       </div>
       <div id="dialogue">
+        <div id="info"></div>
         <img id="joi" src="./img/joi.png" alt="" />
         <div id="box">
           <p id="intro-text"></p>
@@ -45,6 +46,17 @@
             <div id="boss-hp">
               <span id="red">Hp:</span>
               <p id="boss-hp-value">100</p>
+            </div>
+          </div>
+          <img id="get-ready" src="./img/get-ready.png" alt="" />
+          <div id="boss-intro">
+            <img id="boss-intro-img" src="./img/boss.png" alt="" />
+            <div id="boss-intro-box">
+              <p id="boss-intro-text"></p>
+              <div id="boss-dialogue-buttons">
+                <button id="boss-next">Next-></button>
+                <button id="boss-skip">Skip ->></button>
+              </div>
             </div>
           </div>
           <div id="scoreboard">
@@ -65,6 +77,9 @@
         <canvas id="snakeGame" width="800px" height="800px"></canvas>
         <div id="death-screen">
           <button id="play-again">Play Again</button>
+        </div>
+        <div id="win-screen">
+          <button id="play-again-win">Play Again</button>
         </div>
       </div>
       <audio id="music">
