@@ -18,6 +18,8 @@ const poisonScreen = document.querySelector('#poison-screen');
 const deathScreen = document.querySelector('#death-screen');
 const winScreen = document.querySelector('#win-screen');
 const playAgainButton = document.querySelector('#play-again');
+const playBossAgainButton = document.querySelector('#play-again-boss');
+const playAgainWinButton = document.querySelector('#play-again-win');
 const ui = document.querySelector('#ui');
 const bossDisplay = document.querySelector('#boss');
 const bossIntro = document.querySelector('#boss-intro');
@@ -238,11 +240,13 @@ bossNextButton.addEventListener('click', () => {
   boss.currentIntroPage++;
 });
 bossSkipButton.addEventListener('click', () => {
+  getReady.style.display = 'block';
   boss.introFinished = true;
   boss.introStarted = false;
   bossIntro.style.display = 'none';
   teleportSkillDisplay.style.boxShadow = '';
   setTimeout(() => {
+    getReady.style.display = 'none';
     main();
   }, 2000);
 });
@@ -428,6 +432,28 @@ playAgainButton.addEventListener('click', () => {
   resetGame();
   startGame();
 });
+playBossAgainButton.addEventListener('click', () => {
+  getReady.style.display = 'block';
+  skillbar.style.display = 'flex';
+  snakeGameboard.style.display = 'block';
+  deathScreen.style.display = 'none';
+  resetGame();
+  resetToBossFight();
+  clearCanvas();
+  drawWalls();
+  drawSnake();
+  setTimeout(() => {
+    getReady.style.display = 'none';
+    startGame();
+  }, 2000);
+});
+playAgainWinButton.addEventListener('click', () => {
+  skillbar.style.display = 'flex';
+  snakeGameboard.style.display = 'block';
+  winScreen.style.display = 'none';
+  resetGame();
+  startGame();
+});
 
 // Main Functions
 function startGame() {
@@ -581,7 +607,25 @@ function drawWalls() {
     ctx.drawImage(wall, 775, i, 25, 25);
   }
 }
+function resetToBossFight() {
+  boss.introFinished = true;
+  boss.introStarted = false;
+  fastSkillDisplay.style.display = 'block';
+  revealSkillDisplay.style.display = 'block';
+  teleportSkillDisplay.style.display = 'block';
+  skills.fastMove.unlocked = true;
+  skills.revealChips.unlocked = true;
+  skills.teleport.unlocked = true;
+  player.score = 100;
+}
 function resetGame() {
+  revealSkillDisplay.style.display = 'none';
+  fastSkillDisplay.style.display = 'none';
+  teleportSkillDisplay.style.display = 'none';
+  boss.currentIntroPage = 0;
+  currentPage = 0;
+  bossIntroImg.src = `./img/boss.png`;
+  bossIntroImg.style.marginTop = '90px';
   boss.introFinished = false;
   boss.introStarted = false;
   player.attack = { x: '', y: '' };
@@ -670,6 +714,7 @@ function hasGameEnded() {
 // Boss
 
 function bossFight() {
+  playBossAgainButton.style.display = 'block';
   if (!boss.introFinished) {
     return;
   } else {

@@ -186,13 +186,13 @@ main {
 }
 #info {
   display: flex;
-  top: -650px;
-  left: 700px;
-  height: 600px;
+  top: -750px;
+  left: 650px;
+  height: 780px;
   justify-content: center;
   align-items: center;
   position: absolute;
-  width: 600px;
+  width: 780px;
 }
 #game-info,
 #green-info,
@@ -206,8 +206,8 @@ main {
 #skill-info-reveal,
 #skill-info-teleport {
   z-index: 1;
-  width: 800px;
-  height: 800px;
+  width: 100%;
+  height: 100%;
 }
 #dialogue-buttons {
   width: 500px;
@@ -265,7 +265,7 @@ main {
   bottom: 0;
 }
 #death-screen {
-  background-image: url(/img/death-screen.png);
+  background-image: url(./img/death-screen.png);
   background-repeat: no-repeat;
   background-size: 100% 100%;
   font-size: 2rem;
@@ -278,7 +278,7 @@ main {
   width: 700px;
 }
 #win-screen {
-  background-image: url(/img/win-screen.png);
+  background-image: url(./img/win-screen.png);
   background-repeat: no-repeat;
   background-size: 100% 100%;
   font-size: 2rem;
@@ -296,7 +296,18 @@ main {
   color: red;
   background-color: black;
   font-size: 2rem;
-  margin-top: 100px;
+  margin-top: 10px;
+  height: 70px;
+  width: 50%;
+}
+#play-again-boss {
+  display: none;
+  cursor: pointer;
+  border: 2px solid red;
+  color: red;
+  background-color: black;
+  font-size: 2rem;
+  margin-top: 300px;
   height: 70px;
   width: 50%;
 }
@@ -311,7 +322,8 @@ main {
   width: 50%;
 }
 #play-again:hover,
-#play-again-win:hover {
+#play-again-win:hover,
+#play-again-boss:hover {
   border: 2px solid black;
   background-color: rgb(149, 255, 255);
   color: black;
@@ -402,6 +414,7 @@ main {
   width: 300px;
 }
 #skills {
+  width: 220px;
   margin-top: 14px;
   margin-right: 80px;
   height: 100%;
@@ -510,4 +523,34 @@ span {
 #sphere,
 #wall {
   display: none;
+}
+
+@media (max-width: 1800px) {
+  #joi {
+    height: 300px;
+    width: 400px;
+    background-repeat: no-repeat;
+    background-size: contain;
+    z-index: 2;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+  }
+}
+@media (max-width: 1600px) {
+  #info {
+    left: 500px;
+  }
+}
+@media (max-width: 1400px) {
+  #info {
+    left: 300px;
+  }
+}
+@media (max-height: 800px) {
+  #info {
+    top: -650px;
+    width: 680px;
+    height: 680px;
+  }
 }
